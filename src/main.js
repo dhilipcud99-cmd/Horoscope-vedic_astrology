@@ -2806,22 +2806,12 @@ function renderChartGrid(planets, isNavamsam, t, starPada, gender, datetime, lat
             return sign === cell.signIdx;
         });
         
-        // Generate planetary degree label (only for Rasi chart, in top-left)
-        let degreeLabelHtml = '';
-        if (!isNavamsam) {
-            const lines = matchingPlanets.map(p => {
-                const pShort = getPlanetShorthand(p, t, state.lang);
-                const relativeLon = p.longitude % 30;
-                return `${pShort}-${relativeLon.toFixed(2)}`;
-            });
-            degreeLabelHtml = `<div class="cell-degree-info">${lines.join('\n')}</div>`;
-        }
-        
-        // Generate list of planet shorthands in center of cell
+        // Generate one centered label per planet, including its degree in Rasi charts
         let planetListHtml = '';
         matchingPlanets.forEach(p => {
             const pShort = getPlanetShorthand(p, t, state.lang);
-            planetListHtml += `<div class="cell-planet-item">${pShort}</div>`;
+            const degreeText = !isNavamsam ? ` (${(p.longitude % 30).toFixed(2)})` : '';
+            planetListHtml += `<div class="cell-planet-item">${pShort}${degreeText ? `<span class="planet-degree">${degreeText}</span>` : ''}</div>`;
         });
         
         // House numbers (relative to Lagna, clockwise starting from Lagna = 1)
@@ -2854,7 +2844,6 @@ function renderChartGrid(planets, isNavamsam, t, starPada, gender, datetime, lat
         cellsHtml += `
             <div class="${cellClass}" style="${style}">
                 ${houseNumHtml}
-                ${degreeLabelHtml}
                 <div class="cell-planets-list${matchingPlanets.length > 2 ? ' crowded' : ''}">
                     ${planetListHtml}
                 </div>
