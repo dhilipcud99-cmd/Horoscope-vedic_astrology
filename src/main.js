@@ -944,9 +944,6 @@ function renderLeftNavSidebarHtml(t, currentAccent, isLight) {
                 </div>
             </div>
             <div style="display: flex; gap: 4px; align-items: center; ${state.leftSidebarMini ? 'display: none;' : ''}">
-                <button type="button" id="toggle-left-sidebar-mini-btn" class="left-sidebar-toggle-btn" title="${ls.collapseSidebar || 'Collapse to Mini'}">
-                    ◀
-                </button>
                 <button type="button" id="close-left-sidebar-btn" class="left-sidebar-toggle-btn" title="${state.lang === 'ta' ? 'பக்கப்பட்டையை மூடு' : 'Close Sidebar'}">
                     ✕
                 </button>
@@ -962,7 +959,7 @@ function renderLeftNavSidebarHtml(t, currentAccent, isLight) {
         ` : ''}
 
         <!-- Navigation Section -->
-        <div>
+        <div class="sidebar-navigation-section">
             <div class="sidebar-section-title">
                 <span><span class="hide-in-mini">${ls.navigation}</span></span>
             </div>

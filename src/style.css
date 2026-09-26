@@ -55,6 +55,9 @@
     --shadow: 0 15px 35px hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.08);
     /* Glowing gold shadow */
     --container-max: 1200px;
+    --sidebar-width: 260px;
+    --sidebar-mini-width: 68px;
+    --sidebar-gap: 20px;
 }
 
 body.light-mode {
@@ -597,12 +600,20 @@ body:not(.light-mode) .chart-cell.lagna-highlight:hover {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
+    align-content: center;
     gap: 4px;
     width: 100%;
+    flex-grow: 1;
+    min-height: 0;
     font-weight: 700;
     font-size: 1.1em;
     font-family: var(--font-tamil);
     text-align: center;
+}
+
+.rasi-theme .cell-planets-list {
+    padding: 24px 0 4px;
+    box-sizing: border-box;
 }
 
 .cell-planet-item {
@@ -2341,16 +2352,18 @@ body.light-mode .remedy-card {
    Left Navigation & Tools Dashboard Sidebar Styles
    ========================================================================== */
 .app-dashboard-wrapper {
-    display: flex;
-    gap: 20px;
+    display: block;
     width: 100%;
-    align-items: flex-start;
     position: relative;
 }
 
 .app-left-sidebar {
-    width: 260px;
-    flex-shrink: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    max-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     box-shadow: var(--shadow);
@@ -2359,24 +2372,17 @@ body.light-mode .remedy-card {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    position: sticky;
-    top: 20px;
-    max-height: calc(100vh - 40px);
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
     scrollbar-color: var(--card-border) transparent;
-    transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1), padding 0.28s ease, opacity 0.2s ease, margin 0.28s ease;
-    z-index: 100;
+    transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1), width 0.28s cubic-bezier(0.4, 0, 0.2, 1), padding 0.28s ease, opacity 0.2s ease;
+    z-index: 1000;
 }
 
 /* Desktop Closed State */
 .app-left-sidebar.is-closed {
-    width: 0 !important;
-    min-width: 0 !important;
-    padding: 0 !important;
-    margin-right: -20px !important;
-    border: none !important;
+    left: calc(-1 * var(--sidebar-width));
     opacity: 0 !important;
     pointer-events: none !important;
     overflow: hidden !important;
@@ -2385,7 +2391,7 @@ body.light-mode .remedy-card {
 
 /* Desktop Mini State */
 .app-left-sidebar.is-mini {
-    width: 68px;
+    width: var(--sidebar-mini-width);
     padding: 16px 8px;
 }
 
@@ -2479,6 +2485,10 @@ body.light-mode .remedy-card {
     justify-content: space-between;
 }
 
+.sidebar-navigation-section {
+    margin-top: 24px;
+}
+
 .sidebar-nav-list {
     display: flex;
     flex-direction: column;
@@ -2543,11 +2553,23 @@ body.light-mode .remedy-card {
 }
 
 .app-main-workspace {
-    flex: 1;
+    width: calc(100% - var(--sidebar-width) - var(--sidebar-gap));
+    margin-left: calc(var(--sidebar-width) + var(--sidebar-gap));
     min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 25px;
+    transition: width 0.28s ease, margin-left 0.28s ease;
+}
+
+.app-left-sidebar.is-mini ~ .app-main-workspace {
+    width: calc(100% - var(--sidebar-mini-width) - var(--sidebar-gap));
+    margin-left: calc(var(--sidebar-mini-width) + var(--sidebar-gap));
+}
+
+.app-left-sidebar.is-closed ~ .app-main-workspace {
+    width: 100%;
+    margin-left: 0;
 }
 
 .left-sidebar-backdrop {
@@ -2565,6 +2587,17 @@ body.light-mode .remedy-card {
 }
 
 @media (max-width: 1120px) {
+    .app-dashboard-wrapper {
+        display: block;
+    }
+
+    .app-main-workspace,
+    .app-left-sidebar.is-mini ~ .app-main-workspace,
+    .app-left-sidebar.is-closed ~ .app-main-workspace {
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+
     .app-left-sidebar {
         position: fixed !important;
         top: 0 !important;
@@ -2582,7 +2615,7 @@ body.light-mode .remedy-card {
         opacity: 1 !important;
         pointer-events: auto !important;
         padding: 16px 14px !important;
-        margin-right: 0 !important;
+        margin: 0 !important;
     }
 
     .app-left-sidebar.is-open {
