@@ -592,7 +592,7 @@ body:not(.light-mode) .chart-cell.lagna-highlight:hover {
     text-align: left;
     white-space: pre-wrap;
     opacity: 0.8;
-    line-height: 1.2;
+    line-height: 1.1;
 }
 
 .cell-planets-list {
@@ -612,12 +612,21 @@ body:not(.light-mode) .chart-cell.lagna-highlight:hover {
 }
 
 .rasi-theme .cell-planets-list {
-    padding: 24px 0 4px;
+    padding: 42px 2px 4px;
     box-sizing: border-box;
 }
 
 .cell-planet-item {
     padding: 2px 4px;
+}
+
+.cell-planets-list.crowded {
+    gap: 2px;
+    font-size: 0.95em;
+}
+
+.cell-planets-list.crowded .cell-planet-item {
+    padding: 1px 2px;
 }
 
 

@@ -648,6 +648,10 @@ function applyChartAccentColor(color) {
 }
 
 // Application State Loader
+const getLocalDateInputValue = (date = new Date()) => {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+};
+
 const savedState = localStorage.getItem('horoscope_app_state');
 let state = {
     lang: 'ta', // 'ta' or 'en'
@@ -673,7 +677,7 @@ state.activeTab = state.activeTab || 'horoscope';
 state.selectedCity = null; // Ensure birth place is blank on initial load/refresh
 
 // Initialize separate calendar and location state for current planetary positions (transits)
-state.transitDate = state.transitDate || new Date().toISOString().split('T')[0];
+state.transitDate = state.transitDate || getLocalDateInputValue();
 state.transitTime = state.transitTime || new Date().toTimeString().split(' ')[0].substring(0, 5);
 state.transitLocationName = state.transitLocationName || (state.lang === 'ta' ? 'சென்னை (DEFAULT)' : 'Chennai (DEFAULT)');
 state.transitLatitude = state.transitLatitude !== undefined ? state.transitLatitude : 13.0827;
@@ -2851,7 +2855,7 @@ function renderChartGrid(planets, isNavamsam, t, starPada, gender, datetime, lat
             <div class="${cellClass}" style="${style}">
                 ${houseNumHtml}
                 ${degreeLabelHtml}
-                <div class="cell-planets-list">
+                <div class="cell-planets-list${matchingPlanets.length > 2 ? ' crowded' : ''}">
                     ${planetListHtml}
                 </div>
             </div>
@@ -3625,7 +3629,7 @@ function bindEvents() {
         }
         if (transitionsTodayBtn) {
             transitionsTodayBtn.addEventListener('click', () => {
-                state.transitDate = new Date().toISOString().split('T')[0];
+                state.transitDate = getLocalDateInputValue();
                 render();
             });
         }
