@@ -95,7 +95,7 @@
                 <span><span class="hide-in-mini">${r.navigation}</span></span>
             </div>
             <div class="sidebar-nav-list">
-                <a class="sidebar-nav-item ${X.view===`form`&&X.activeTab!==`calendar`?`active`:``}" id="nav-link-horoscope" title="${r.navHoroscope}" data-tooltip="${r.navHoroscope}">
+                <a class="sidebar-nav-item ${X.view===`form`?`active`:``}" id="nav-link-horoscope" title="${r.navHoroscope}" data-tooltip="${r.navHoroscope}">
                     <span class="hide-in-mini">${r.navHoroscope}</span>
                 </a>
                 <a class="sidebar-nav-item" id="nav-link-transits" title="${r.navTransits}" data-tooltip="${r.navTransits}">
@@ -107,7 +107,7 @@
                 <a class="sidebar-nav-item" id="nav-link-transitions" title="${r.navTransitions}" data-tooltip="${r.navTransitions}">
                     <span class="hide-in-mini">${r.navTransitions}</span>
                 </a>
-                <a class="sidebar-nav-item ${X.view===`form`&&X.activeTab===`calendar`?`active`:``}" id="nav-link-calendar" title="${r.navCalendar}" data-tooltip="${r.navCalendar}">
+                <a class="sidebar-nav-item" id="nav-link-calendar" title="${r.navCalendar}" data-tooltip="${r.navCalendar}">
                     <span class="hide-in-mini">${r.navCalendar}</span>
                 </a>
                 <a class="sidebar-nav-item" id="nav-link-matching" title="${r.navMatching}" data-tooltip="${r.navMatching}">
@@ -590,102 +590,102 @@
                 </div>
             </div>
         `}let S=qt({name:`Gochara`,gender:`male`,dateStr:g,timeStr:X.transitTime||`12:00`,lat:X.transitLatitude||13.08,lon:X.transitLongitude||80.27,fatherName:``,motherName:``,ampm:`PM`,city:X.transitLocationName||`Chennai`}),C=r===`ta`?n.stars[S.panchang.starIdx]:e.en.stars[S.panchang.starIdx],w=`${C}-${S.panchang.pada}`,T=r===`ta`?n.signs[J[S.panchang.rasiIdx]]:e.en.signs[J[S.panchang.rasiIdx]],E=S.planets.find(e=>e.name===`Sun`),D=E?r===`ta`?n.signs[J[E.rasiIdx]]:e.en.signs[J[E.rasiIdx]]:``,O=X.chartStyle===`north`?Rn(S.planets,!1,n):Bn(S.planets,!1,n,w,r===`ta`?`கோச்சாரம்`:`Kocharam`,`${g.split(`-`).reverse().join(`-`)} ${X.transitTime||`12:00`}`,(X.transitLatitude||13.08).toFixed(2),(X.transitLongitude||80.27).toFixed(2),X.transitLocationName||`Chennai`),k=g,A=g.split(`-`);if(A.length===3){let e=A[0],t=parseInt(A[1],10);k=`${parseInt(A[2],10)} ${(u[r]||u.en)[t-1]}, ${e}`}let j={ta:`ஜோதிட நாட்காட்டி`,en:`Vedic Calendar`,hi:`वैदिक पंचांग कैलेंडर`,te:`వేద క్యాలెండర్`,kn:`ವೈದಿಕ ಕ್ಯಾಲೆಂಡರ್`,ml:`വേദ കലണ്ടർ`},M={ta:`தினசரி பஞ்சாங்கம், நட்சத்திரம் & கோச்சாரக் கட்டம்`,en:`Daily Panchang, Nakshatra & Gochara Chart`,hi:`दैनिक पंचांग, नक्षत्र एवं गोचर कुंडली`,te:`రోజువారీ పంచాంగం, నక్షత్రం & గోచారం`,kn:`ದೈನಂದಿನ ಪಂಚಾಂಗ, ನಕ್ಷತ್ರ & ಗೋಚಾರ`,ml:`പ്രതിദിന പഞ്ചാംഗം, നക്ഷത്രം & ഗോചാരം`};return`
-        <div class="card" id="monthly-calendar-card" style="padding: var(--space-lg); display: flex; flex-direction: column; gap: 16px;">
-            <!-- Header -->
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 14px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="card" id="monthly-calendar-card">
+            <div style="width: 100%;">
+                <!-- Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
                     <div>
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary); line-height: 1.2;">${j[r]||j.en}</h3>
-                        <p style="font-size: 12.5px; color: var(--text-secondary); margin: 3px 0 0 0;">${M[r]||M.en}</p>
+                        <h2 class="card-title" style="font-size: 20px; margin-bottom: 3px; text-align: left;">${j[r]||j.en}</h2>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin: 0; text-align: left;">${M[r]||M.en}</p>
                     </div>
-                </div>
 
-                <!-- Month & Year Controls -->
-                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <div style="display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.02); padding: 3px; border-radius: 6px; border: 1px solid var(--card-border);">
-                        <button type="button" id="cal-prev-month-btn" style="padding: 0 10px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); transition: all 0.2s;" title="${r===`ta`?`முந்தைய மாதம்`:`Prev Month`}">
-                            ◀
+                    <!-- Month & Year Controls -->
+                    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.02); padding: 3px; border-radius: 6px; border: 1px solid var(--card-border);">
+                            <button type="button" id="cal-prev-month-btn" style="padding: 0 10px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); transition: all 0.2s;" title="${r===`ta`?`முந்தைய மாதம்`:`Prev Month`}">
+                                ◀
+                            </button>
+                            <select id="cal-month-select" style="height: 30px; padding: 0 10px; font-weight: 600; font-size: 13px; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); cursor: pointer; min-width: 125px;">
+                                ${_}
+                            </select>
+                            <select id="cal-year-select" style="height: 30px; padding: 0 8px; font-weight: 600; font-size: 13px; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); cursor: pointer; min-width: 75px;">
+                                ${v}
+                            </select>
+                            <button type="button" id="cal-next-month-btn" style="padding: 0 10px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); transition: all 0.2s;" title="${r===`ta`?`அடுத்த மாதம்`:`Next Month`}">
+                                ▶
+                            </button>
+                        </div>
+                        <button type="button" id="cal-today-btn" style="padding: 0 12px; height: 36px; display: inline-flex; align-items: center; gap: 5px; font-weight: 600; font-size: 12.5px; border-radius: 6px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--accent); cursor: pointer; transition: all 0.2s;" title="${r===`ta`?`இன்றைய மாதம்`:`Today`}">
+                            ${r===`ta`?`இன்று`:`Today`}
                         </button>
-                        <select id="cal-month-select" style="height: 30px; padding: 0 10px; font-weight: 600; font-size: 13px; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); cursor: pointer; min-width: 125px;">
-                            ${_}
-                        </select>
-                        <select id="cal-year-select" style="height: 30px; padding: 0 8px; font-weight: 600; font-size: 13px; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); cursor: pointer; min-width: 75px;">
-                            ${v}
-                        </select>
-                        <button type="button" id="cal-next-month-btn" style="padding: 0 10px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); transition: all 0.2s;" title="${r===`ta`?`அடுத்த மாதம்`:`Next Month`}">
-                            ▶
-                        </button>
-                    </div>
-                    <button type="button" id="cal-today-btn" style="padding: 0 12px; height: 36px; display: inline-flex; align-items: center; gap: 5px; font-weight: 600; font-size: 12.5px; border-radius: 6px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--accent); cursor: pointer; transition: all 0.2s;" title="${r===`ta`?`இன்றைய மாதம்`:`Today`}">
-                        ${r===`ta`?`இன்று`:`Today`}
-                    </button>
-                </div>
-            </div>
-
-            <!-- 2-Column Responsive Body -->
-            <div class="calendar-card-container">
-                <!-- Left: Calendar Grid -->
-                <div class="calendar-main-grid-column">
-                    <!-- Legend Bar -->
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 2px;">
-                        <span class="cal-legend-chip">${r===`ta`?`பௌர்ணமி (முழு நிலவு)`:`Pournami (Full Moon)`}</span>
-                        <span class="cal-legend-chip">${r===`ta`?`அமாவாசை (புது நிலவு)`:`Amavasya (New Moon)`}</span>
-                        <span class="cal-legend-chip">${r===`ta`?`ஏகாதசி விரதம்`:`Ekadashi Vrat`}</span>
-                    </div>
-
-                    <!-- 7-Day Weekday Header -->
-                    <div class="sidebar-cal-grid">
-                        ${b}
-                    </div>
-
-                    <!-- Calendar Day Cells Grid -->
-                    <div class="sidebar-cal-grid">
-                        ${x}
                     </div>
                 </div>
 
-                <!-- Right: Selected Date Gochara Chart & Highlights -->
-                <div class="calendar-chart-column">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
-                        <div>
-                            <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
-                                ${r===`ta`?`தேர்ந்தெடுக்கப்பட்ட நாள்`:`Selected Date`}
-                            </div>
-                            <div style="font-size: 16px; font-weight: 700; color: var(--accent); margin-top: 2px;">
-                                ${k}
-                            </div>
+                <!-- 2-Column Responsive Body -->
+                <div class="calendar-card-container">
+                    <!-- Left: Calendar Grid -->
+                    <div class="calendar-main-grid-column">
+                        <!-- Legend Bar -->
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 2px;">
+                            <span class="cal-legend-chip">${r===`ta`?`பௌர்ணமி (முழு நிலவு)`:`Pournami (Full Moon)`}</span>
+                            <span class="cal-legend-chip">${r===`ta`?`அமாவாசை (புது நிலவு)`:`Amavasya (New Moon)`}</span>
+                            <span class="cal-legend-chip">${r===`ta`?`ஏகாதசி விரதம்`:`Ekadashi Vrat`}</span>
                         </div>
-                        <span class="status-badge badge-primary" style="font-size: 11px; padding: 3px 8px;">
-                            ${r===`ta`?`கோச்சாரக் கட்டம்`:`Gochara Chart`}
-                        </span>
+
+                        <!-- 7-Day Weekday Header -->
+                        <div class="sidebar-cal-grid">
+                            ${b}
+                        </div>
+
+                        <!-- Calendar Day Cells Grid -->
+                        <div class="sidebar-cal-grid">
+                            ${x}
+                        </div>
                     </div>
 
-                    <!-- Rasi Chart -->
-                    <div class="chart-box" style="padding: 0; align-items: center; width: 100%; display: flex; flex-direction: column; justify-content: center; background: none; border: none; box-shadow: none;">
-                        ${X.chartStyle===`north`?`
-                            <div class="north-chart-container" style="max-width: 290px; width: 100%;">
-                                ${O}
+                    <!-- Right: Selected Date Gochara Chart & Highlights -->
+                    <div class="calendar-chart-column">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
+                            <div>
+                                <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
+                                    ${r===`ta`?`தேர்ந்தெடுக்கப்பட்ட நாள்`:`Selected Date`}
+                                </div>
+                                <div style="font-size: 16px; font-weight: 700; color: var(--accent); margin-top: 2px;">
+                                    ${k}
+                                </div>
                             </div>
-                        `:`
-                            <div class="chart-grid rasi-theme" style="max-width: 290px; width: 100%; aspect-ratio: 1; --chart-font-size: 10.5px;">
-                                ${O}
-                            </div>
-                        `}
-                    </div>
+                            <span class="status-badge badge-primary" style="font-size: 11px; padding: 3px 8px;">
+                                ${r===`ta`?`கோச்சாரக் கட்டம்`:`Gochara Chart`}
+                            </span>
+                        </div>
 
-                    <!-- Selected Date Panchangam Highlights -->
-                    <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; background: rgba(0,0,0,0.02); padding: 12px; border-radius: 6px; border: 1px solid var(--card-border);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
-                            <span style="color: var(--text-secondary);">${r===`ta`?`சந்திர ராசி & நட்சத்திரம்`:`Moon & Star`}:</span>
-                            <strong style="color: var(--accent); font-size: 12px; text-align: right;">${T} • ${C} (${S.panchang.pada})</strong>
+                        <!-- Rasi Chart -->
+                        <div class="chart-box" style="padding: 0; align-items: center; width: 100%; display: flex; flex-direction: column; justify-content: center; background: none; border: none; box-shadow: none;">
+                            ${X.chartStyle===`north`?`
+                                <div class="north-chart-container" style="max-width: 290px; width: 100%;">
+                                    ${O}
+                                </div>
+                            `:`
+                                <div class="chart-grid rasi-theme" style="max-width: 290px; width: 100%; aspect-ratio: 1; --chart-font-size: 10.5px;">
+                                    ${O}
+                                </div>
+                            `}
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
-                            <span style="color: var(--text-secondary);">${r===`ta`?`சூரிய ராசி`:`Sun Sign`}:</span>
-                            <strong style="color: var(--text-primary); font-size: 12px; text-align: right;">${D}</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
-                            <span style="color: var(--text-secondary);">${r===`ta`?`திதி`:`Tithi`}:</span>
-                            <strong style="color: var(--text-primary); font-size: 12px; text-align: right;">${Vn(S.panchang.tithiIdx,r)}</strong>
+
+                        <!-- Selected Date Panchangam Highlights -->
+                        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; background: rgba(0,0,0,0.02); padding: 12px; border-radius: 6px; border: 1px solid var(--card-border);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                                <span style="color: var(--text-secondary);">${r===`ta`?`சந்திர ராசி & நட்சத்திரம்`:`Moon & Star`}:</span>
+                                <strong style="color: var(--accent); font-size: 12px; text-align: right;">${T} • ${C} (${S.panchang.pada})</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                                <span style="color: var(--text-secondary);">${r===`ta`?`சூரிய ராசி`:`Sun Sign`}:</span>
+                                <strong style="color: var(--text-primary); font-size: 12px; text-align: right;">${D}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                                <span style="color: var(--text-secondary);">${r===`ta`?`திதி`:`Tithi`}:</span>
+                                <strong style="color: var(--text-primary); font-size: 12px; text-align: right;">${Vn(S.panchang.tithiIdx,r)}</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
