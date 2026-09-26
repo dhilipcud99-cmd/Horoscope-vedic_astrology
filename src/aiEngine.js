@@ -77,7 +77,7 @@ export function generateAIPrediction(horoscope, lang) {
     const dasaText = dasaLordDetails[lang]?.[dasaLord] || dasaLordDetails['en']?.[dasaLord] || '';
     
     const details = {
-        title: lang === 'ta' ? `✨ ${horoscope.birthDetails.name}-க்கான AI ஜாதக கணிப்புகள்` : `✨ AI Horoscope Readings for ${horoscope.birthDetails.name}`,
+        title: lang === 'ta' ? `${horoscope.birthDetails.name}-க்கான AI ஜாதக கணிப்புகள்` : `AI Horoscope Readings for ${horoscope.birthDetails.name}`,
         
         personality: lang === 'ta' 
             ? `<b>லக்னம் மற்றும் நட்சத்திர ஆளுமை:</b> உங்கள் லக்னம் <b>${lagnaName}</b> மற்றும் உங்கள் ஜென்ம நட்சத்திரம் <b>${starName} (பாதம்: ${pada})</b> ஆகும். ${lagnaText} உங்கள் மனம் மற்றும் எண்ணங்கள் எப்போதும் சுயமாகச் சிந்திக்கும் தன்மையைக் கொண்டிருக்கும்.`

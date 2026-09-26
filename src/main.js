@@ -670,6 +670,7 @@ if (savedState) {
     }
 }
 state.globalZoom = parseInt(state.globalZoom, 10) || 100;
+state.activeTab = state.activeTab || 'horoscope';
 state.selectedCity = null; // Ensure birth place is blank on initial load/refresh
 
 // Initialize separate calendar and location state for current planetary positions (transits)
@@ -719,6 +720,7 @@ const leftSidebarTranslations = {
         navTransitions: "கிரக பெயர்ச்சிகள்",
         navCalendar: "மாதாந்திர நாட்காட்டி",
         navMatching: "திருமணப் பொருத்தம்",
+        navTop: "பக்கத்தின் உச்சிக்கு செல்க",
         tools: "கருவிகள் & அமைப்புகள்",
         chartStyle: "கட்ட முறை",
         southIndian: "தெற்கு",
@@ -750,6 +752,7 @@ const leftSidebarTranslations = {
         navTransitions: "Planet Transitions",
         navCalendar: "Monthly Calendar",
         navMatching: "Marriage Matchmaking",
+        navTop: "Scroll to Top",
         tools: "Tools & Settings",
         chartStyle: "Chart Style",
         southIndian: "South",
@@ -843,6 +846,7 @@ const leftSidebarTranslations = {
         navTransitions: "ಗ್ರಹ ಬದಲಾವಣೆಗಳು",
         navCalendar: "ಮಾಸಿಕ ಕ್ಯಾಲೆಂಡರ್",
         navMatching: "ವಿವಾಹ ಹೊಂದಾಣಿಕೆ",
+        navTop: "ಮೇಲಕ್ಕೆ ಹೋಗಿ",
         tools: "ಉಪಕರಣಗಳು & ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
         chartStyle: "ಚಾರ್ಟ್ ಶೈಲಿ",
         southIndian: "ದಕ್ಷಿಣ",
@@ -874,6 +878,7 @@ const leftSidebarTranslations = {
         navTransitions: "ഗ്രഹ മാറ്റങ്ങൾ",
         navCalendar: "പ്രതിമാസ കലണ്ടർ",
         navMatching: "വിവാഹ പൊരുത്തം",
+        navTop: "മുകളിലേക്ക് പോകുക",
         tools: "ഉപകരണങ്ങളും ക്രമീകരണങ്ങളും",
         chartStyle: "ചാർട്ട് ശൈലി",
         southIndian: "തെക്ക്",
@@ -937,68 +942,13 @@ function init() {
 function renderLeftNavSidebarHtml(t, currentAccent, isLight) {
     const lang = state.lang;
     const ls = leftSidebarTranslations[lang] || leftSidebarTranslations['en'];
-    
-    const presets = [
-        { name: 'Gold', primary: '#ca8a04', accent: '#ea580c' },
-        { name: 'Green', primary: '#059669', accent: '#0d9488' },
-        { name: 'Blue', primary: '#2563eb', accent: '#0284c7' },
-        { name: 'Red', primary: '#dc2626', accent: '#e11d48' },
-        { name: 'Purple', primary: '#7c3aed', accent: '#c084fc' }
-    ];
-
-    let presetsHtml = '';
-    presets.forEach(p => {
-        const isActive = currentAccent.primary.toLowerCase() === p.primary.toLowerCase();
-        presetsHtml += `
-            <button class="sidebar-accent-dot preset-color-dot${isActive ? ' active' : ''}" 
-                    data-primary="${p.primary}" 
-                    data-accent="${p.accent}" 
-                    style="background: ${p.primary}; width: 22px; height: 22px; border-radius: 50%; border: 2px solid ${isActive ? 'var(--text-primary)' : 'transparent'}; cursor: pointer; transition: transform 0.2s; padding: 0;"
-                    title="${p.name}">
-            </button>
-        `;
-    });
-
-    const isSouth = state.chartStyle !== 'north';
-
-    // Saved Profiles HTML
-    let profilesHtml = '';
-    if (state.savedProfiles && state.savedProfiles.length > 0) {
-        profilesHtml = state.savedProfiles.map((prof, idx) => `
-            <div class="saved-profile-card">
-                <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 600; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        👤 ${prof.name || 'Unnamed'}
-                    </div>
-                    <div style="font-size: 10px; color: var(--text-secondary); margin-top: 1px;">
-                        📅 ${prof.dateStr || ''} • ${prof.place || ''}
-                    </div>
-                </div>
-                <div style="display: flex; gap: 4px; align-items: center;">
-                    <button type="button" class="load-profile-btn" data-index="${idx}" style="padding: 2px 7px; font-size: 11px; background: var(--btn-primary-bg); color: #fff; border: none; border-radius: 3px; cursor: pointer; font-weight: 600;" title="${ls.loadProfile}">
-                        ${ls.loadProfile}
-                    </button>
-                    <button type="button" class="delete-profile-btn" data-index="${idx}" style="padding: 2px 6px; font-size: 11px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 3px; cursor: pointer;" title="${ls.deleteProfile}">
-                        ✕
-                    </button>
-                </div>
-            </div>
-        `).join('');
-    } else {
-        profilesHtml = `
-            <div style="font-size: 11px; color: var(--text-secondary); text-align: center; padding: 6px; font-style: italic;">
-                ${ls.noProfiles}
-            </div>
-        `;
-    }
 
     return `
         <!-- Sidebar Header -->
         <div class="left-sidebar-header">
             <div class="left-sidebar-brand" style="${state.leftSidebarMini ? 'justify-content: center; width: 100%; cursor: pointer;' : ''}" title="${state.leftSidebarMini ? (ls.expandSidebar || 'Click to show text') : ''}">
-                <span style="font-size: 20px;">🪐</span>
                 <div class="hide-in-mini">
-                    <div style="line-height: 1.1; font-size: 13.5px;">${ls.title}</div>
+                    <div style="line-height: 1.1; font-size: 13.5px; font-weight: 700;">${ls.title}</div>
                     <div style="font-size: 10px; font-weight: normal; color: var(--text-secondary);">${ls.subtitle}</div>
                 </div>
             </div>
@@ -1020,107 +970,30 @@ function renderLeftNavSidebarHtml(t, currentAccent, isLight) {
         </div>
         ` : ''}
 
-        <!-- Section 1: Navigation -->
+        <!-- Navigation Section -->
         <div>
             <div class="sidebar-section-title">
-                <span>📍 <span class="hide-in-mini">${ls.navigation}</span></span>
+                <span><span class="hide-in-mini">${ls.navigation}</span></span>
             </div>
             <div class="sidebar-nav-list">
-                <a class="sidebar-nav-item ${state.view === 'form' ? 'active' : ''}" id="nav-link-horoscope" title="${ls.navHoroscope}" data-tooltip="${ls.navHoroscope}">
-                    <span class="nav-icon">📝</span>
+                <a class="sidebar-nav-item ${state.view === 'form' && state.activeTab !== 'calendar' ? 'active' : ''}" id="nav-link-horoscope" title="${ls.navHoroscope}" data-tooltip="${ls.navHoroscope}">
                     <span class="hide-in-mini">${ls.navHoroscope}</span>
                 </a>
                 <a class="sidebar-nav-item" id="nav-link-transits" title="${ls.navTransits}" data-tooltip="${ls.navTransits}">
-                    <span class="nav-icon">🪐</span>
                     <span class="hide-in-mini">${ls.navTransits}</span>
                 </a>
                 <a class="sidebar-nav-item" id="nav-link-chandrashtama" title="${ls.navChandrashtama}" data-tooltip="${ls.navChandrashtama}">
-                    <span class="nav-icon">🌑</span>
                     <span class="hide-in-mini">${ls.navChandrashtama}</span>
                 </a>
                 <a class="sidebar-nav-item" id="nav-link-transitions" title="${ls.navTransitions}" data-tooltip="${ls.navTransitions}">
-                    <span class="nav-icon">🔄</span>
                     <span class="hide-in-mini">${ls.navTransitions}</span>
                 </a>
-                <a class="sidebar-nav-item" id="nav-link-calendar" title="${ls.navCalendar}" data-tooltip="${ls.navCalendar}">
-                    <span class="nav-icon">📅</span>
+                <a class="sidebar-nav-item ${state.view === 'form' && state.activeTab === 'calendar' ? 'active' : ''}" id="nav-link-calendar" title="${ls.navCalendar}" data-tooltip="${ls.navCalendar}">
                     <span class="hide-in-mini">${ls.navCalendar}</span>
                 </a>
                 <a class="sidebar-nav-item" id="nav-link-matching" title="${ls.navMatching}" data-tooltip="${ls.navMatching}">
-                    <span class="nav-icon">💖</span>
                     <span class="hide-in-mini">${ls.navMatching}</span>
                 </a>
-            </div>
-        </div>
-
-        <!-- Section 2: Astrology Tools & Settings -->
-        <div>
-            <div class="sidebar-section-title">
-                <span>⚙️ <span class="hide-in-mini">${ls.tools}</span></span>
-            </div>
-            <div class="sidebar-tool-box hide-in-mini">
-                <!-- Chart Style Selector -->
-                <div>
-                    <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px;">
-                        ☸️ ${ls.chartStyle}
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-                        <button type="button" class="sidebar-chart-style-btn" data-style="south" style="padding: 5px; font-size: 11.5px; font-weight: 600; border-radius: 4px; cursor: pointer; border: 1px solid var(--card-border); background: ${isSouth ? 'var(--primary)' : 'var(--card-bg)'}; color: ${isSouth ? '#fff' : 'var(--text-primary)'};">
-                            ${ls.southIndian}
-                        </button>
-                        <button type="button" class="sidebar-chart-style-btn" data-style="north" style="padding: 5px; font-size: 11.5px; font-weight: 600; border-radius: 4px; cursor: pointer; border: 1px solid var(--card-border); background: ${!isSouth ? 'var(--primary)' : 'var(--card-bg)'}; color: ${!isSouth ? '#fff' : 'var(--text-primary)'};">
-                            ${ls.northIndian}
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Theme Mode -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 4px; border-top: 1px solid var(--card-border);">
-                    <span style="font-size: 11.5px; color: var(--text-secondary); font-weight: 600;">🌓 ${ls.theme}</span>
-                    <button type="button" id="sidebar-theme-toggle-btn" style="padding: 3px 8px; font-size: 11px; font-weight: 600; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--accent); cursor: pointer;">
-                        ${isLight ? `☀️ ${ls.light}` : `🌙 ${ls.dark}`}
-                    </button>
-                </div>
-
-                <!-- Page Zoom Control -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 4px; border-top: 1px solid var(--card-border);">
-                    <span style="font-size: 11.5px; color: var(--text-secondary); font-weight: 600;">🔍 ${ls.zoom || 'Zoom'}</span>
-                    <div style="display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--card-border); padding: 1px 4px; background: var(--card-bg); border-radius: 4px;">
-                        <button type="button" id="sidebar-zoom-out-btn" style="width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--card-border); background: var(--input-bg); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: var(--text-primary); padding: 0;" title="Zoom Out" ${state.globalZoom <= 70 ? 'disabled style="opacity:0.4; cursor:default;"' : ''}>
-                            &minus;
-                        </button>
-                        <span style="font-size: 11px; font-weight: 600; min-width: 28px; text-align: center; color: var(--accent);">${state.globalZoom}%</span>
-                        <button type="button" id="sidebar-zoom-in-btn" style="width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--card-border); background: var(--input-bg); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: var(--text-primary); padding: 0;" title="Zoom In" ${state.globalZoom >= 130 ? 'disabled style="opacity:0.4; cursor:default;"' : ''}>
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Accent Color Dots -->
-                <div style="padding-top: 4px; border-top: 1px solid var(--card-border);">
-                    <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">
-                        🎨 ${ls.colors}
-                    </div>
-                    <div style="display: flex; gap: 6px; align-items: center;">
-                        ${presetsHtml}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Section 3: Saved Horoscope Profiles -->
-        <div class="hide-in-mini">
-            <div class="sidebar-section-title">
-                <span>📁 ${ls.savedProfiles}</span>
-                <span style="font-size: 10px; opacity: 0.8;">(${state.savedProfiles ? state.savedProfiles.length : 0})</span>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-                <button type="button" id="save-current-profile-btn" style="width: 100%; padding: 7px 10px; font-size: 11.5px; font-weight: 600; border-radius: 6px; border: 1px dashed var(--accent); background: rgba(202, 138, 4, 0.06); color: var(--accent); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                    <span>${ls.saveCurrent}</span>
-                </button>
-                <div class="saved-profiles-list" style="display: flex; flex-direction: column; gap: 5px; max-height: 180px; overflow-y: auto;">
-                    ${profilesHtml}
-                </div>
             </div>
         </div>
     `;
@@ -1151,7 +1024,15 @@ function render() {
         content = renderResultsView(t);
     }
     
-    const logoSubtitles = {
+    const scrollToTopLabels = {
+        en: 'Scroll to Top',
+        ta: 'மேலே செல்க',
+        hi: 'शीर्ष पर जाएं',
+        te: 'పైకి వెళ్ళండి',
+        kn: 'ಮೇಲಕ್ಕೆ ಸ್ಕ್ರೋಲ್ ಮಾಡಿ',
+        ml: 'മുകളിലേക്ക് സ്ക്രോൾ ചെയ്യുക'
+    };
+        const logoSubtitles = {
         en: 'Accurate Vedic Astrology Predictions',
         ta: 'துல்லியமான வேத ஜோதிட கணிப்புகள்',
         hi: 'सटीक वैदिक ज्योतिष भविष्यवाणियां',
@@ -1277,6 +1158,13 @@ function render() {
 
         <!-- Mobile Drawer Backdrop for Left Sidebar -->
         <div id="left-sidebar-backdrop" class="left-sidebar-backdrop ${state.leftSidebarOpen ? 'active' : ''}"></div>
+
+        <!-- Floating Scroll to Top Button -->
+        <button type="button" id="scroll-to-top-btn" class="scroll-to-top-btn" title="${scrollToTopLabels[state.lang] || 'Scroll to top'}" aria-label="Scroll to top">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 15l-6-6-6 6"/>
+            </svg>
+        </button>
     `;
     
     bindEvents();
@@ -1427,128 +1315,8 @@ function renderFormView(t) {
         city: state.transitLocationName
     });
     
-    const targetPlanets = ['Lagna', 'Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'];
-    const starLords = ['Ketu', 'Venus', 'Sun', 'Moon', 'Mars', 'Rahu', 'Jupiter', 'Saturn', 'Mercury'];
-    
-    let headerColsHtml = `<th style="text-align: center; padding: 12px; min-width: 100px;">${state.lang === 'ta' ? 'தேதி' : 'Date'}</th>`;
-    targetPlanets.forEach(pName => {
-        const pTamilName = t.planets[pName];
-        const pEnglishName = translations['en'].planets[pName];
-        const planetDisplayName = state.lang === 'ta' ? pTamilName : pEnglishName;
-        
-        headerColsHtml += `
-            <th style="text-align: center; white-space: nowrap; padding: 12px;">
-                <div>${planetDisplayName}</div>
-                <div style="font-size: 11px; font-weight: normal; opacity: 0.85; margin-top: 2px;">${pEnglishName}</div>
-            </th>
-        `;
-    });
-
     const displayTransitDate = new Date(`${transitDateStr}T${state.transitTime}`).toLocaleDateString();
     const displayTransitTime = new Date(`${transitDateStr}T${state.transitTime}`).toLocaleTimeString();
-    
-    const systemToday = new Date();
-    systemToday.setHours(12, 0, 0, 0);
-    
-    let tableRowsHtml = '';
-    
-    // Prepend Load More Past Dates row
-    tableRowsHtml += `
-        <tr id="load-more-past-row" style="background: rgba(0,0,0,0.02); cursor: pointer; transition: background 0.15s ease;">
-            <td colspan="11" style="text-align: center; padding: 12px; font-weight: 700; color: var(--accent); font-size: 13px; border: 1px solid var(--card-border);">
-                ▲ ${state.lang === 'ta' ? 'முந்தைய தேதிகளைக் காட்டு' : 'Load More Past Dates'} ▲
-            </td>
-        </tr>
-    `;
-    
-    for (let offset = -state.transitRangePast; offset <= state.transitRangeFuture; offset++) {
-        const d = new Date(systemToday);
-        d.setDate(systemToday.getDate() + offset);
-        
-        const dateIso = d.toISOString().split('T')[0];
-        const isActive = state.transitDate === dateIso;
-        const isToday = offset === 0;
-        
-        const dayTransit = calculateHoroscope({
-            name: 'Kocharam',
-            gender: 'male',
-            dateStr: dateIso,
-            timeStr: `${state.transitTime}:00`,
-            lat: state.transitLatitude,
-            lon: state.transitLongitude,
-            fatherName: '',
-            motherName: '',
-            ampm: transitAmpm,
-            city: state.transitLocationName
-        });
-        
-        let dayLabel = '';
-        if (isToday) {
-            dayLabel = state.lang === 'ta' ? 'இன்று (TODAY)' : 'TODAY';
-        } else {
-            const options = { weekday: 'short', month: 'short', day: 'numeric' };
-            dayLabel = d.toLocaleDateString(state.lang === 'ta' ? 'ta-IN' : 'en-US', options);
-        }
-        
-        const rowBg = isActive 
-            ? 'rgba(202, 138, 4, 0.08)' 
-            : (isToday ? 'rgba(202, 138, 4, 0.03)' : 'transparent');
-        const rowStyle = `background: ${rowBg}; cursor: pointer; transition: background 0.15s ease; ${isActive ? 'outline: 2px solid var(--accent); outline-offset: -2px;' : ''}`;
-        
-        let rowColsHtml = `
-            <td class="timeline-row-selector" data-date="${dateIso}" style="white-space: nowrap; text-align: center; padding: 12px; font-weight: bold; border: 1px solid var(--card-border); vertical-align: middle;">
-                <div style="font-size: 13px;">${dayLabel}</div>
-                <div style="font-size: 10px; color: var(--text-secondary); font-weight: normal; margin-top: 2px;">${d.toLocaleDateString()}</div>
-            </td>
-        `;
-        
-        targetPlanets.forEach(pName => {
-            const p = dayTransit.planets.find(pl => pl.name === pName);
-            if (!p) {
-                rowColsHtml += `<td>-</td>`;
-                return;
-            }
-            
-            const rasiName = state.lang === 'ta' ? t.signs[signKeys[p.rasiIdx]] : translations['en'].signs[signKeys[p.rasiIdx]];
-            const starName = state.lang === 'ta' ? t.stars[p.starIdx] : translations['en'].stars[p.starIdx];
-            
-            const starLordKey = starLords[p.starIdx % 9];
-            const starLordName = state.lang === 'ta' 
-                ? t.planets[starLordKey] 
-                : (translations[state.lang]?.planets[starLordKey] || translations['en'].planets[starLordKey]);
-            
-            const isRetro = p.isRetro && p.name !== 'Lagna' && p.name !== 'Mandi';
-            const retroLabel = isRetro ? (state.lang === 'ta' ? ' (வ)' : ' (R)') : '';
-            
-            const relativeLon = p.longitude % 30;
-            const strengthVal = getPlanetaryStrength(pName, p.rasiIdx, state.lang);
-            const strengthPrefix = state.lang === 'ta' ? 'நிலை' : 'Str';
-
-            rowColsHtml += `
-                <td style="white-space: nowrap; text-align: center; padding: 12px; border: 1px solid var(--card-border); vertical-align: middle;">
-                    <div style="font-weight: 600; font-size: 13px;">${relativeLon.toFixed(2)}°${retroLabel}</div>
-                    <div style="font-size: 12px; margin-top: 2px; font-weight: 500;">${state.lang === 'ta' ? rasiName : translations['en'].signs[signKeys[p.rasiIdx]]}</div>
-                    <div style="font-size: 11px; color: var(--accent); margin-top: 1px;">${state.lang === 'ta' ? starName : translations['en'].stars[p.starIdx]} (${p.pada})</div>
-                    <div style="font-size: 10px; color: var(--text-secondary); margin-top: 1px;">L: ${starLordName} | ${strengthPrefix}: ${strengthVal}</div>
-                </td>
-            `;
-        });
-        
-        tableRowsHtml += `
-            <tr class="timeline-table-row" data-date="${dateIso}" style="${rowStyle}">
-                ${rowColsHtml}
-            </tr>
-        `;
-    }
-    
-    // Append Load More Future Dates row
-    tableRowsHtml += `
-        <tr id="load-more-future-row" style="background: rgba(0,0,0,0.02); cursor: pointer; transition: background 0.15s ease;">
-            <td colspan="11" style="text-align: center; padding: 12px; font-weight: 700; color: var(--accent); font-size: 13px; border: 1px solid var(--card-border);">
-                ▼ ${state.lang === 'ta' ? 'அடுத்த தேதிகளைக் காட்டு' : 'Load More Future Dates'} ▼
-            </td>
-        </tr>
-    `;
     
     const sectionTitle = state.lang === 'ta' ? 'தற்போதைய கோச்சார கிரக நிலைகள்' : 'Current Planetary Positions';
     const locationSubtitle = state.lang === 'ta' 
@@ -1573,8 +1341,6 @@ function renderFormView(t) {
           );
 
     const transitAspectMapHtml = renderAspectMatrixHtml(currentTransit.planets, t, state.lang);
-
-
 
     const transitCardHtml = `
         <div class="card" id="planetary-positions-card" style="display: flex; flex-direction: column; gap: 30px; align-items: center;">
@@ -1626,20 +1392,6 @@ function renderFormView(t) {
                 
                 <!-- Aspect Map -->
                 ${transitAspectMapHtml}
-            </div>
-            
-            <!-- Table Column -->
-            <div class="table-container" style="width: 100%;">
-                <table style="font-size: 14px; width: 100%;">
-                    <thead>
-                        <tr>
-                            ${headerColsHtml}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tableRowsHtml}
-                    </tbody>
-                </table>
             </div>
         </div>
     `;
@@ -1763,8 +1515,8 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
                         ${pEndStr}
                     </td>
                     <td style="padding: 10px 12px; text-align: center; vertical-align: middle; font-size: 12.5px; color: var(--text-secondary);">
-                        <div>⏱️ ${durHours} hrs</div>
-                        ${isPadaActive ? `<span class="status-badge badge-danger" style="margin-top: 3px; font-size: 10px; padding: 2px 6px;">🔴 ${lang === 'ta' ? 'நடப்பில்' : 'Active'}</span>` : ''}
+                        <div>${durHours} hrs</div>
+                        ${isPadaActive ? `<span class="status-badge badge-danger" style="margin-top: 3px; font-size: 10px; padding: 2px 6px;">${lang === 'ta' ? 'நடப்பில்' : 'Active'}</span>` : ''}
                     </td>
                 </tr>
             `;
@@ -1782,14 +1534,14 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
         overallPeriodBannerHtml = `
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px 14px; background: ${isOverallActive ? 'rgba(239, 68, 68, 0.08)' : 'rgba(0,0,0,0.03)'}; border: 1px solid ${isOverallActive ? 'rgba(239, 68, 68, 0.3)' : 'var(--card-border)'}; border-radius: 8px; font-size: 13px; margin-bottom: 12px;">
                 <div>
-                    <strong style="color: ${isOverallActive ? '#ef4444' : 'var(--accent)'};">📅 ${lang === 'ta' ? 'அடுத்த சந்திராஷ்டம முழு கால அளவு' : 'Upcoming Chandrashtama Total Window'}:</strong>
+                    <strong style="color: ${isOverallActive ? '#ef4444' : 'var(--accent)'};">${lang === 'ta' ? 'அடுத்த சந்திராஷ்டம முழு கால அளவு' : 'Upcoming Chandrashtama Total Window'}:</strong>
                     <span style="margin-left: 6px; color: var(--text-primary); font-weight: 600;">${overallStartStr}</span>
                     <span style="margin: 0 4px; color: var(--text-secondary);">${lang === 'ta' ? 'முதல்' : 'to'}</span>
                     <span style="color: var(--text-primary); font-weight: 600;">${overallEndStr}</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 6px; color: var(--text-secondary);">
-                    <span>⏱️ <strong>${totalHours} hrs</strong> (~2.25 ${lang === 'ta' ? 'நாட்கள்' : 'days'})</span>
-                    ${isOverallActive ? `<span class="status-badge badge-danger" style="font-size: 10.5px;">🔴 ${lang === 'ta' ? 'நடப்பில் உள்ளது' : 'Active Now'}</span>` : ''}
+                    <span><strong>${totalHours} hrs</strong> (~2.25 ${lang === 'ta' ? 'நாட்கள்' : 'days'})</span>
+                    ${isOverallActive ? `<span class="status-badge badge-danger" style="font-size: 10.5px;">${lang === 'ta' ? 'நடப்பில் உள்ளது' : 'Active Now'}</span>` : ''}
                 </div>
             </div>
         `;
@@ -1805,7 +1557,7 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
         
         rasiPillsHtml += `
             <button type="button" class="rasi-select-pill ${isSel ? 'selected' : ''}" data-rasi="${i}">
-                ${isAct ? '🔴 ' : ''}${rName}
+                ${rName}
             </button>
         `;
     }
@@ -1819,11 +1571,11 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
             <div style="width: 100%;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
                     <div>
-                        <h2 class="card-title" style="font-size: 20px; margin-bottom: 3px; text-align: left;">🌙 ${title}</h2>
+                        <h2 class="card-title" style="font-size: 20px; margin-bottom: 3px; text-align: left;">${title}</h2>
                         <p style="font-size: 13px; color: var(--text-secondary); margin: 0; text-align: left;">${subtitle}</p>
                     </div>
                     <div style="font-size: 12px; background: rgba(0,0,0,0.03); border: 1px solid var(--card-border); padding: 5px 12px; border-radius: 20px; color: var(--text-secondary);">
-                        📍 ${lang === 'ta' ? 'கோச்சார சந்திரன்' : 'Transit Moon'}: <strong style="color: var(--accent);">${transitMoonRasiName} (${(moonLon % 30).toFixed(2)}°)</strong> - <span style="color: var(--text-primary); font-weight: 500;">${transitMoonStarName} (${transitMoonStar.pada}-ம் பாதம்)</span>
+                        ${lang === 'ta' ? 'கோச்சார சந்திரன்' : 'Transit Moon'}: <strong style="color: var(--accent);">${transitMoonRasiName} (${(moonLon % 30).toFixed(2)}°)</strong> - <span style="color: var(--text-primary); font-weight: 500;">${transitMoonStarName} (${transitMoonStar.pada}-ம் பாதம்)</span>
                     </div>
                 </div>
 
@@ -1857,7 +1609,7 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
                     <!-- Star & Pada Mapping Table with Dates -->
                     <div>
                         <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
-                            ⭐ ${lang === 'ta' ? 'நட்சத்திர & பாத வாரியான சந்திராஷ்டம தேதிகள் மற்றும் நேரங்கள்' : 'Star & Pada-wise Chandrashtama Dates and Timings'}:
+                            ${lang === 'ta' ? 'நட்சத்திர & பாத வாரியான சந்திராஷ்டம தேதிகள் மற்றும் நேரங்கள்' : 'Star & Pada-wise Chandrashtama Dates and Timings'}:
                         </div>
                         <div class="table-container" style="margin: 0;">
                             <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
@@ -1898,12 +1650,6 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
         filteredTransitions = transitions.filter(tr => !tr.isMajor);
     }
     
-    // Planet icon and color maps
-    const planetIcons = {
-        Sun: '☀️', Moon: '🌙', Mars: '♂️', Mercury: '☿',
-        Jupiter: '♃', Venus: '♀️', Saturn: '🪐', Rahu: '☊', Ketu: '☋'
-    };
-    
     const planetColors = {
         Sun: '#f59e0b', Moon: '#a1a1aa', Mars: '#ef4444', Mercury: '#10b981',
         Jupiter: '#fbbf24', Venus: '#ec4899', Saturn: '#3b82f6', Rahu: '#8b5cf6', Ketu: '#d97706'
@@ -1941,7 +1687,6 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
     if (transitions.length > 0) {
         const soonest = transitions[0];
         const sPName = lang === 'ta' ? t.planets[soonest.name] : translations['en'].planets[soonest.name];
-        const sIcon = planetIcons[soonest.name] || '🪐';
         const sCurRasiName = lang === 'ta' ? t.signs[signKeys[soonest.currentRasi]] : translations['en'].signs[signKeys[soonest.currentRasi]];
         const sNextRasiName = lang === 'ta' ? t.signs[signKeys[soonest.nextRasi]] : translations['en'].signs[signKeys[soonest.nextRasi]];
         const sNextStarName = lang === 'ta' ? t.stars[soonest.nextStar.starIdx] : translations['en'].stars[soonest.nextStar.starIdx];
@@ -1949,10 +1694,9 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
         highlightBannerHtml = `
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 12px 16px; background: rgba(202, 138, 4, 0.08); border: 1px solid rgba(202, 138, 4, 0.3); border-radius: 8px; font-size: 13.5px; margin-bottom: 14px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="font-size: 24px;">${sIcon}</div>
                     <div>
                         <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">
-                            ⚡ ${lang === 'ta' ? 'அடுத்த பெயர்ச்சி (அருகிலுள்ள மாற்றம்)' : 'Next Upcoming Ingress'}
+                            ${lang === 'ta' ? 'அடுத்த பெயர்ச்சி (அருகிலுள்ள மாற்றம்)' : 'Next Upcoming Ingress'}
                         </div>
                         <div style="font-size: 15px; font-weight: 700; color: var(--accent); margin-top: 1px;">
                             ${sPName}: <span style="color: var(--text-primary);">${sCurRasiName}</span> ➔ <strong style="color: #ef4444;">${sNextRasiName}</strong> <span style="font-size: 12px; font-weight: normal; color: var(--text-secondary);">(${sNextStarName} ${soonest.nextStar.pada}-ம் பாதம்)</span>
@@ -1961,10 +1705,10 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
                 </div>
                 <div style="text-align: right;">
                     <div style="font-weight: 600; color: var(--text-primary); font-size: 13.5px;">
-                        📅 ${formatDateTime(soonest.transitionDate)}
+                        ${formatDateTime(soonest.transitionDate)}
                     </div>
                     <div style="font-size: 12px; color: #ca8a04; font-weight: 600; margin-top: 2px;">
-                        ⏳ ${formatTimeRemaining(soonest.diffDays)}
+                        ${formatTimeRemaining(soonest.diffDays)}
                     </div>
                 </div>
             </div>
@@ -1973,9 +1717,9 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
 
     // Filter Tab Buttons
     const filterTabs = [
-        { key: 'all', label: lang === 'ta' ? 'அனைத்து கிரகங்கள் (9)' : 'All Planets (9)', icon: '🌌' },
-        { key: 'major', label: lang === 'ta' ? 'முக்கிய பெயர்ச்சிகள் (குரு, சனி, ராகு, கேது)' : 'Major Planets (Jupiter, Saturn, Rahu, Ketu)', icon: '🪐' },
-        { key: 'inner', label: lang === 'ta' ? 'உள் கிரகங்கள் (சூரியன், செவ்வாய், புதன், சுக்கிரன், சந்திரன்)' : 'Inner Planets (Sun, Mars, Mercury, Venus, Moon)', icon: '☀️' }
+        { key: 'all', label: lang === 'ta' ? 'அனைத்து கிரகங்கள் (9)' : 'All Planets (9)' },
+        { key: 'major', label: lang === 'ta' ? 'முக்கிய பெயர்ச்சிகள் (குரு, சனி, ராகு, கேது)' : 'Major Planets (Jupiter, Saturn, Rahu, Ketu)' },
+        { key: 'inner', label: lang === 'ta' ? 'உள் கிரகங்கள் (சூரியன், செவ்வாய், புதன், சுக்கிரன், சந்திரன்)' : 'Inner Planets (Sun, Mars, Mercury, Venus, Moon)' }
     ];
 
     let filterTabsHtml = '<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">';
@@ -1983,7 +1727,7 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
         const isSel = tb.key === activeFilter;
         filterTabsHtml += `
             <button type="button" class="planet-transition-pill rasi-select-pill ${isSel ? 'selected' : ''}" data-filter="${tb.key}" style="font-size: 12.5px; padding: 6px 14px;">
-                ${tb.icon} ${tb.label}
+                ${tb.label}
             </button>
         `;
     });
@@ -1994,7 +1738,6 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
     filteredTransitions.forEach(tr => {
         const pName = lang === 'ta' ? t.planets[tr.name] : translations['en'].planets[tr.name];
         const pNameEng = translations['en'].planets[tr.name];
-        const icon = planetIcons[tr.name] || '🪐';
         const color = planetColors[tr.name] || 'var(--accent)';
         
         const curRasiName = lang === 'ta' ? t.signs[signKeys[tr.currentRasi]] : translations['en'].signs[signKeys[tr.currentRasi]];
@@ -2011,12 +1754,9 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
         rowsHtml += `
             <tr style="border-bottom: 1px solid var(--card-border); ${isSoon ? 'background: rgba(202, 138, 4, 0.04);' : ''}">
                 <td style="padding: 12px 14px; vertical-align: middle;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 20px;">${icon}</span>
-                        <div>
-                            <div style="font-weight: 700; font-size: 14.5px; color: ${color};">${pName}</div>
-                            <div style="font-size: 11px; color: var(--text-secondary);">${pNameEng} ${tr.isMajor ? `<span style="color:#ef4444; font-weight:600;">• ${lang === 'ta' ? 'முக்கிய கிரகம்' : 'Major'}</span>` : ''}</div>
-                        </div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 14.5px; color: ${color};">${pName}</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">${pNameEng} ${tr.isMajor ? `<span style="color:#ef4444; font-weight:600;">• ${lang === 'ta' ? 'முக்கிய கிரகம்' : 'Major'}</span>` : ''}</div>
                     </div>
                 </td>
                 <td style="padding: 12px 14px; vertical-align: middle;">
@@ -2036,11 +1776,11 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
                     </div>
                 </td>
                 <td style="padding: 12px 14px; vertical-align: middle; font-weight: 600; color: var(--text-primary); font-size: 13px;">
-                    <div>📅 ${formatDateTime(tr.transitionDate)}</div>
+                    <div>${formatDateTime(tr.transitionDate)}</div>
                 </td>
                 <td style="padding: 12px 14px; text-align: center; vertical-align: middle;">
                     <span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; display: inline-block; ${isSoon ? 'background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);' : 'background: rgba(0,0,0,0.04); color: var(--text-primary); border: 1px solid var(--card-border);'}">
-                        ⏳ ${timeRemainingText}
+                        ${timeRemainingText}
                     </span>
                 </td>
             </tr>
@@ -2055,7 +1795,7 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
             <div style="width: 100%;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
                     <div>
-                        <h2 class="card-title" style="font-size: 20px; margin-bottom: 3px; text-align: left;">🪐 ${title}</h2>
+                        <h2 class="card-title" style="font-size: 20px; margin-bottom: 3px; text-align: left;">${title}</h2>
                         <p style="font-size: 13px; color: var(--text-secondary); margin: 0; text-align: left;">${subtitle}</p>
                     </div>
                 </div>
@@ -2095,8 +1835,16 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
     const year = state.chandrashtamaCalendarYear || new Date().getFullYear();
     const month = state.chandrashtamaCalendarMonth || (new Date().getMonth() + 1); // 1-12
     
-    // Day of week strings (short strings for compact sidebar grid)
+    // Day of week strings
     const weekDays = {
+        ta: ["ஞாயிறு", "திங்கள்", "செவ்வாய்", "புதன்", "வியாழன்", "வெள்ளி", "சனி"],
+        en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        hi: ["रविवार", "सोमवार", "मंगलवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार"],
+        te: ["ఆదివారం", "సోమవారం", "మంగళవారం", "బుధవారం", "గురువారం", "శుక్రవారం", "శనివారం"],
+        kn: ["ಭಾನುವಾರ", "ಸೋಮವಾರ", "ಮಂಗಳವಾರ", "ಬುಧವಾರ", "ಗುರುವಾರ", "ಶುಕ್ರವಾರ", "ಶನಿವಾರ"],
+        ml: ["ഞായർ", "തിങ്കൾ", "ചൊവ്വ", "ബുധൻ", "വ്യാഴം", "വെള്ളി", "ശനി"]
+    };
+    const weekDaysShort = {
         ta: ["ஞா", "திங்", "செவ்", "புதன்", "வியா", "வெள்", "சனி"],
         en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
         hi: ["रवि", "सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि"],
@@ -2104,13 +1852,14 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
         kn: ["ಭಾನು", "ಸೋಮ", "ಮಂಗಳ", "ಬುಧ", "ಗುರು", "ಶುಕ್ರ", "ಶನಿ"],
         ml: ["ഞായർ", "തിങ്കൾ", "ചൊവ്വ", "ബുധൻ", "വ്യാഴം", "വെള്ളി", "ശനി"]
     };
-    const daysHeader = weekDays[lang] || weekDays['en'];
+    const daysHeaderFull = weekDays[lang] || weekDays['en'];
+    const daysHeaderShort = weekDaysShort[lang] || weekDaysShort['en'];
     
     // Month Names
     const monthNames = {
         ta: ["ஜனவரி", "பிப்ரவரி", "மார்ச்", "ஏப்ரல்", "மே", "ஜூன்", "ஜூலை", "ஆகஸ்ட்", "செப்டம்பர்", "அக்டோபர்", "நவம்பர்", "டிசம்பர்"],
         en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-        hi: ["जनवरी", "फ़रवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "அக்டோபர்", "நவம்பர்", "டிசம்பர்"],
+        hi: ["जनवरी", "फ़रवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"],
         te: ["జనవరి", "ఫిబ్రవరి", "మార్చి", "ఏప్రిల్", "మే", "జూన్", "జూలై", "ఆగస్టు", "సెప్టెంబర్", "అక్టోబర్", "నవంబర్", "డిసెంబర్"],
         kn: ["ಜನವರಿ", "ಫೆಬ್ರವರಿ", "ಮಾರ್ಚ್", "ಏಪ್ರಿಲ್", "ಮೇ", "ಜೂನ್", "ಜುಲೈ", "ಆಗಸ್ಟ್", "ಸೆಪ್ಟೆಂಬರ್", "ಅಕ್ಟೋಬರ್", "ನವೆಂಬರ್", "ಡಿಸೆಂಬರ್"],
         ml: ["ജനുവരി", "ഫെബ്രുവരി", "മാർച്ച്", "മേയ്", "ജൂൺ", "ജൂലൈ", "ഓഗസ്റ്റ്", "സെപ്റ്റംബർ", "ഒക്ടോബർ", "നവംബർ", "ഡിസംബർ"]
@@ -2119,9 +1868,9 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
     // Tithi Names
     const tithiList = [
         { ta: "பிரதமை", en: "Shukla 1" }, { ta: "துவிதியை", en: "Shukla 2" }, { ta: "திருதியை", en: "Shukla 3" }, { ta: "சதுர்த்தி", en: "Shukla 4" }, { ta: "பஞ்சமி", en: "Shukla 5" }, { ta: "சஷ்டி", en: "Shukla 6" }, { ta: "சப்தமி", en: "Shukla 7" }, { ta: "அஷ்டமி", en: "Shukla 8" }, { ta: "நவமி", en: "Shukla 9" }, { ta: "தசமி", en: "Shukla 10" },
-        { ta: "ஏகாதசி 🌿", en: "Ekadashi 🌿" }, { ta: "துவாதசி", en: "Dwadashi" }, { ta: "திரயோதசி", en: "Trayodashi" }, { ta: "சதுர்தசி", en: "Chaturdashi" }, { ta: "பௌர்ணமி 🌕", en: "Pournami 🌕" },
+        { ta: "ஏகாதசி", en: "Ekadashi" }, { ta: "துவாதசி", en: "Dwadashi" }, { ta: "திரயோதசி", en: "Trayodashi" }, { ta: "சதுர்தசி", en: "Chaturdashi" }, { ta: "பௌர்ணமி", en: "Pournami" },
         { ta: "பிரதமை", en: "Krishna 1" }, { ta: "துவிதியை", en: "Krishna 2" }, { ta: "திருதியை", en: "Krishna 3" }, { ta: "சதுர்த்தி", en: "Krishna 4" }, { ta: "பஞ்சமி", en: "Krishna 5" }, { ta: "சஷ்டி", en: "Krishna 6" }, { ta: "சப்தமி", en: "Krishna 7" }, { ta: "அஷ்டமி", en: "Krishna 8" }, { ta: "நவமி", en: "Krishna 9" }, { ta: "தசமி", en: "Krishna 10" },
-        { ta: "ஏகாதசி 🌿", en: "Ekadashi 🌿" }, { ta: "துவாதசி", en: "Dwadashi" }, { ta: "திரயோதசி", en: "Trayodashi" }, { ta: "சதுர்தசி", en: "Chaturdashi" }, { ta: "அமாவாசை 🌑", en: "Amavasya 🌑" }
+        { ta: "ஏகாதசி", en: "Ekadashi" }, { ta: "துவாதசி", en: "Dwadashi" }, { ta: "திரயோதசி", en: "Trayodashi" }, { ta: "சதுர்தசி", en: "Chaturdashi" }, { ta: "அமாவாசை", en: "Amavasya" }
     ];
 
     // Days in Month
@@ -2150,13 +1899,14 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
 
     // Weekday Headers HTML
     let weekDaysHtml = '';
-    daysHeader.forEach(dName => {
+    for (let i = 0; i < 7; i++) {
         weekDaysHtml += `
             <div class="sidebar-cal-header-day">
-                ${dName}
+                <span class="hide-in-small-cal">${daysHeaderFull[i]}</span>
+                <span class="show-in-small-cal">${daysHeaderShort[i]}</span>
             </div>
         `;
-    });
+    }
 
     // Calendar Cells Grid HTML
     let calendarCellsHtml = '';
@@ -2197,32 +1947,34 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
         const isEkadashi = (tIdx === 10 || tIdx === 25);
 
         let tithiBadgeColor = 'var(--text-secondary)';
-        if (isPournami) tithiBadgeColor = '#ca8a04; font-weight: 700;';
-        if (isAmavasya) tithiBadgeColor = '#64748b; font-weight: 700;';
-        if (isEkadashi) tithiBadgeColor = '#16a34a; font-weight: 700;';
+        if (isPournami) tithiBadgeColor = '#ca8a04';
+        if (isAmavasya) tithiBadgeColor = '#64748b';
+        if (isEkadashi) tithiBadgeColor = '#16a34a';
 
         calendarCellsHtml += `
             <div class="sidebar-cal-cell cal-day-cell ${isSelected ? 'is-selected' : ''}" data-date="${dayStr}">
                 <!-- Date Number Header -->
-                <div style="display: flex; justify-content: space-between; align-items: center; line-height: 1;">
-                    <span style="font-size: 13.5px; font-weight: 700; color: ${isToday || isSelected ? 'var(--accent)' : 'var(--text-primary)'}; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; ${isToday ? 'background: rgba(202, 138, 4, 0.2); border-radius: 50%; border: 1px solid var(--accent);' : ''}">
+                <div style="display: flex; justify-content: space-between; align-items: center; line-height: 1; margin-bottom: 4px;">
+                    <span class="cal-day-number ${isToday ? 'today-num' : ''} ${isSelected ? 'selected-num' : ''}">
                         ${day}
                     </span>
-                    ${isToday ? `<span style="font-size: 8px; font-weight: 700; color: var(--accent); text-transform: uppercase;">${lang === 'ta' ? 'இன்று' : 'Today'}</span>` : ''}
+                    <div style="display: flex; align-items: center; gap: 3px;">
+                        ${isToday ? `<span class="cal-today-badge">${lang === 'ta' ? 'இன்று' : 'Today'}</span>` : ''}
+                    </div>
                 </div>
 
                 <!-- Astrological details -->
-                <div style="margin: 2px 0 0 0; display: flex; flex-direction: column; gap: 2px;">
+                <div style="display: flex; flex-direction: column; gap: 3px; font-size: 10px; line-height: 1.25; margin-top: auto;">
                     <!-- Star -->
-                    <div style="font-size: 10px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${dMoonStarName} - ${dMoonRasiName}">
-                        ⭐ ${dMoonStarName}
+                    <div style="font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${dMoonStarName} - ${dMoonRasiName}">
+                        ${dMoonStarName}
                     </div>
                     <!-- Moon Sign -->
-                    <div style="font-size: 9px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        🌙 ${dMoonRasiName}
+                    <div style="color: var(--text-secondary); font-size: 9.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${dMoonRasiName}
                     </div>
                     <!-- Tithi -->
-                    <div style="font-size: 8.5px; color: ${tithiBadgeColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <div style="font-size: 9px; font-weight: 600; color: ${tithiBadgeColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         ${tithiName}
                     </div>
                 </div>
@@ -2278,18 +2030,18 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
     const titles = {
         ta: 'ஜோதிட நாட்காட்டி',
         en: 'Vedic Calendar',
-        hi: 'वैदिक कैलेंडर',
+        hi: 'वैदिक पंचांग कैलेंडर',
         te: 'వేద క్యాలెండర్',
         kn: 'ವೈದಿಕ ಕ್ಯಾಲೆಂಡರ್',
         ml: 'വേദ കലണ്ടർ'
     };
     const subtitles = {
-        ta: 'தினசரி நட்சத்திரம் & கோச்சாரம்',
-        en: 'Daily Panchang & Transit Chart',
-        hi: 'दैनिक पंचांग एवं गोचर',
-        te: 'రోజువారీ పంచాంగం & గోచారం',
-        kn: 'ದೈನಂದಿನ ಪಂಚಾಂಗ & ಗೋಚಾರ',
-        ml: 'പ്രതിദിന പഞ്ചാംഗം & ഗോചാരം'
+        ta: 'தினசரி பஞ்சாங்கம், நட்சத்திரம் & கோச்சாரக் கட்டம்',
+        en: 'Daily Panchang, Nakshatra & Gochara Chart',
+        hi: 'दैनिक पंचांग, नक्षत्र एवं गोचर कुंडली',
+        te: 'రోజువారీ పంచాంగం, నక్షత్రం & గోచారం',
+        kn: 'ದೈನಂದಿನ ಪಂಚಾಂಗ, ನಕ್ಷತ್ರ & ಗೋಚಾರ',
+        ml: 'പ്രതിദിന പഞ്ചാംഗം, നക്ഷത്രം & ഗോചാരം'
     };
     const title = titles[lang] || titles['en'];
     const subtitle = subtitles[lang] || subtitles['en'];
@@ -2297,33 +2049,32 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
     return `
         <div class="card" id="monthly-calendar-card" style="padding: var(--space-lg); display: flex; flex-direction: column; gap: 16px;">
             <!-- Header -->
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid var(--card-border); padding-bottom: 12px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div class="step-badge" style="width: 32px; height: 32px; font-size: 14px;">📅</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 14px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
                     <div>
-                        <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: var(--text-primary);">${title}</h3>
-                        <p style="font-size: 12.5px; color: var(--text-secondary); margin: 2px 0 0 0;">${subtitle}</p>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary); line-height: 1.2;">${title}</h3>
+                        <p style="font-size: 12.5px; color: var(--text-secondary); margin: 3px 0 0 0;">${subtitle}</p>
                     </div>
                 </div>
 
                 <!-- Month & Year Controls -->
                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <button type="button" id="cal-prev-month-btn" style="padding: 5px 10px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; cursor: pointer; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary);" title="${lang === 'ta' ? 'முந்தைய மாதம்' : 'Prev Month'}">
+                    <div style="display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.02); padding: 3px; border-radius: 6px; border: 1px solid var(--card-border);">
+                        <button type="button" id="cal-prev-month-btn" style="padding: 0 10px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); transition: all 0.2s;" title="${lang === 'ta' ? 'முந்தைய மாதம்' : 'Prev Month'}">
                             ◀
                         </button>
-                        <select id="cal-month-select" style="height: 30px; padding: 2px 8px; font-weight: 600; font-size: 13px; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); cursor: pointer;">
+                        <select id="cal-month-select" style="height: 30px; padding: 0 10px; font-weight: 600; font-size: 13px; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); cursor: pointer; min-width: 125px;">
                             ${monthOptionsHtml}
                         </select>
-                        <select id="cal-year-select" style="height: 30px; padding: 2px 8px; font-weight: 600; font-size: 13px; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); cursor: pointer;">
+                        <select id="cal-year-select" style="height: 30px; padding: 0 8px; font-weight: 600; font-size: 13px; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); cursor: pointer; min-width: 75px;">
                             ${yearOptionsHtml}
                         </select>
-                        <button type="button" id="cal-next-month-btn" style="padding: 5px 10px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; cursor: pointer; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary);" title="${lang === 'ta' ? 'அடுத்த மாதம்' : 'Next Month'}">
+                        <button type="button" id="cal-next-month-btn" style="padding: 0 10px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); transition: all 0.2s;" title="${lang === 'ta' ? 'அடுத்த மாதம்' : 'Next Month'}">
                             ▶
                         </button>
                     </div>
-                    <button type="button" id="cal-today-btn" style="padding: 5px 10px; height: 30px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; font-size: 12px; border-radius: 4px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--accent); cursor: pointer;" title="${lang === 'ta' ? 'இன்றைய மாதம்' : 'Today'}">
-                        📍 ${lang === 'ta' ? 'இன்று' : 'Today'}
+                    <button type="button" id="cal-today-btn" style="padding: 0 12px; height: 36px; display: inline-flex; align-items: center; gap: 5px; font-weight: 600; font-size: 12.5px; border-radius: 6px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--accent); cursor: pointer; transition: all 0.2s;" title="${lang === 'ta' ? 'இன்றைய மாதம்' : 'Today'}">
+                        ${lang === 'ta' ? 'இன்று' : 'Today'}
                     </button>
                 </div>
             </div>
@@ -2333,12 +2084,14 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
                 <!-- Left: Calendar Grid -->
                 <div class="calendar-main-grid-column">
                     <!-- Legend Bar -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">
-                        <span>🌕 பௌர்ணமி (Full Moon) / 🌑 அமாவாசை (New Moon) / 🌿 ஏகாதசி (Ekadashi)</span>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 2px;">
+                        <span class="cal-legend-chip">${lang === 'ta' ? 'பௌர்ணமி (முழு நிலவு)' : 'Pournami (Full Moon)'}</span>
+                        <span class="cal-legend-chip">${lang === 'ta' ? 'அமாவாசை (புது நிலவு)' : 'Amavasya (New Moon)'}</span>
+                        <span class="cal-legend-chip">${lang === 'ta' ? 'ஏகாதசி விரதம்' : 'Ekadashi Vrat'}</span>
                     </div>
 
-                    <!-- 7-Day Header -->
-                    <div class="sidebar-cal-grid" style="margin-bottom: -4px;">
+                    <!-- 7-Day Weekday Header -->
+                    <div class="sidebar-cal-grid">
                         ${weekDaysHtml}
                     </div>
 
@@ -2350,22 +2103,22 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
 
                 <!-- Right: Selected Date Gochara Chart & Highlights -->
                 <div class="calendar-chart-column">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
                         <div>
-                            <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">
+                            <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
                                 ${lang === 'ta' ? 'தேர்ந்தெடுக்கப்பட்ட நாள்' : 'Selected Date'}
                             </div>
-                            <div style="font-size: 15px; font-weight: 700; color: var(--accent); margin-top: 1px;">
-                                📅 ${displaySelectedDate}
+                            <div style="font-size: 16px; font-weight: 700; color: var(--accent); margin-top: 2px;">
+                                ${displaySelectedDate}
                             </div>
                         </div>
-                        <span class="status-badge badge-primary" style="font-size: 11px; padding: 2px 7px;">
+                        <span class="status-badge badge-primary" style="font-size: 11px; padding: 3px 8px;">
                             ${lang === 'ta' ? 'கோச்சாரக் கட்டம்' : 'Gochara Chart'}
                         </span>
                     </div>
 
                     <!-- Rasi Chart -->
-                    <div class="chart-box" style="padding: 0; align-items: center; width: 100%; display: flex; flex-direction: column; justify-content: center;">
+                    <div class="chart-box" style="padding: 0; align-items: center; width: 100%; display: flex; flex-direction: column; justify-content: center; background: none; border: none; box-shadow: none;">
                         ${state.chartStyle === 'north' ? `
                             <div class="north-chart-container" style="max-width: 290px; width: 100%;">
                                 ${sideRasiGridHtml}
@@ -2378,18 +2131,18 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
                     </div>
 
                     <!-- Selected Date Panchangam Highlights -->
-                    <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; background: rgba(0,0,0,0.02); padding: 10px 12px; border-radius: 6px; border: 1px solid var(--card-border);">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="color: var(--text-secondary);">🌙 ${lang === 'ta' ? 'சந்திர ராசி & நட்சத்திரம்' : 'Moon & Star'}:</span>
-                            <strong style="color: var(--accent); font-size: 12px;">${sideMoonRasiName} • ${sideMoonStarName} (${selectedTransit.panchang.pada})</strong>
+                    <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; background: rgba(0,0,0,0.02); padding: 12px; border-radius: 6px; border: 1px solid var(--card-border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                            <span style="color: var(--text-secondary);">${lang === 'ta' ? 'சந்திர ராசி & நட்சத்திரம்' : 'Moon & Star'}:</span>
+                            <strong style="color: var(--accent); font-size: 12px; text-align: right;">${sideMoonRasiName} • ${sideMoonStarName} (${selectedTransit.panchang.pada})</strong>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="color: var(--text-secondary);">☀️ ${lang === 'ta' ? 'சூரிய ராசி' : 'Sun Sign'}:</span>
-                            <strong style="color: var(--text-primary); font-size: 12px;">${sideSunRasiName}</strong>
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                            <span style="color: var(--text-secondary);">${lang === 'ta' ? 'சூரிய ராசி' : 'Sun Sign'}:</span>
+                            <strong style="color: var(--text-primary); font-size: 12px; text-align: right;">${sideSunRasiName}</strong>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="color: var(--text-secondary);">🌿 ${lang === 'ta' ? 'திதி' : 'Tithi'}:</span>
-                            <strong style="color: var(--text-primary); font-size: 12px;">${getTithiName(selectedTransit.panchang.tithiIdx, lang)}</strong>
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                            <span style="color: var(--text-secondary);">${lang === 'ta' ? 'திதி' : 'Tithi'}:</span>
+                            <strong style="color: var(--text-primary); font-size: 12px; text-align: right;">${getTithiName(selectedTransit.panchang.tithiIdx, lang)}</strong>
                         </div>
                     </div>
                 </div>
@@ -2483,16 +2236,16 @@ function generateMarriageDasaRows(planets, dasaTimeline, birthDateStr, t, lang) 
         
         if (score >= 80) {
             scoreColor = '#10b981'; // Green - Very Good
-            scoreIndicator = `${lang === 'ta' ? '✓ மிகவும் சாதகம்' : '✓ Highly Favorable'}`;
+            scoreIndicator = `${lang === 'ta' ? 'மிகவும் சாதகம்' : 'Highly Favorable'}`;
         } else if (score >= 60) {
             scoreColor = '#f59e0b'; // Amber - Good
-            scoreIndicator = `${lang === 'ta' ? '✓ சாதகம்' : '✓ Favorable'}`;
+            scoreIndicator = `${lang === 'ta' ? 'சாதகம்' : 'Favorable'}`;
         } else if (score >= 40) {
             scoreColor = '#f97316'; // Orange - Moderate
-            scoreIndicator = `${lang === 'ta' ? '◐ நடுநிலை' : '◐ Moderate'}`;
+            scoreIndicator = `${lang === 'ta' ? 'நடுநிலை' : 'Moderate'}`;
         } else {
             scoreColor = '#ef4444'; // Red - Challenging
-            scoreIndicator = `${lang === 'ta' ? '✗ சவாலாக' : '✗ Challenging'}`;
+            scoreIndicator = `${lang === 'ta' ? 'சவாலாக' : 'Challenging'}`;
         }
         
         rowsHtml += `
@@ -2640,7 +2393,7 @@ function generateMarriageDatePrediction(planets, dasaTimeline, birthDateStr, t, 
             timelineText = lang === 'ta' ? `${yearDiff} வருடங்கள்` : `In ${yearDiff} Years`;
         }
         
-        const indicator = lang === 'ta' ? `✓ ${idx === 0 ? 'மிகவும் சாதகம்' : 'சாதகம்'}` : `✓ ${idx === 0 ? 'Highly Favorable' : 'Favorable'}`;
+        const indicator = lang === 'ta' ? `${idx === 0 ? 'மிகவும் சாதகம்' : 'சாதகம்'}` : `${idx === 0 ? 'Highly Favorable' : 'Favorable'}`;
         
         predictionHtml += `
             <div style="margin-bottom: 15px; padding: 12px; background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; border-radius: 2px;">
@@ -2905,7 +2658,7 @@ function renderResultsView(t) {
             <tr style="border-bottom: 1px solid var(--card-border);">
                 <td style="padding: 12px; font-weight: 600; color: var(--accent);">
                     <div>${planetDisplayName}</div>
-                    <div style="font-size: 11px; font-weight: normal; color: var(--text-secondary); margin-top: 1px;">${pEnglishName}${isRetro ? ' (R)' : ''}</div>
+                    ${state.lang === 'ta' ? `<div style="font-size: 11px; font-weight: normal; color: var(--text-secondary); margin-top: 1px;">${pEnglishName}${isRetro ? ' (R)' : ''}</div>` : ''}
                 </td>
                 <td style="padding: 12px; font-weight: 600;">
                     <div>${signLonStr}</div>
@@ -3785,7 +3538,32 @@ function bindEvents() {
         });
     }
 
-    // Global Page Zoom Buttons (Header & Left Sidebar - Active on ALL pages)
+    // Scroll to Top Floating Button & Nav Shortcut Handler
+    const scrollToTopBtn = document.querySelector('#scroll-to-top-btn');
+    if (scrollToTopBtn) {
+        scrollToTopBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        const toggleScrollBtnVisibility = () => {
+            if (window.scrollY > 250) {
+                scrollToTopBtn.classList.add('visible');
+            } else {
+                scrollToTopBtn.classList.remove('visible');
+            }
+        };
+
+        window.addEventListener('scroll', toggleScrollBtnVisibility, { passive: true });
+        toggleScrollBtnVisibility();
+    }
+
+
+
+        // Global Page Zoom Buttons (Header & Left Sidebar - Active on ALL pages)
     const handleZoomStep = (delta) => {
         const currentZoom = parseInt(state.globalZoom, 10) || 100;
         const nextZoom = currentZoom + delta;
@@ -4506,37 +4284,6 @@ function bindEvents() {
             });
         }
         
-        // Transit Table Row click listeners
-        const timelineSelectors = document.querySelectorAll('.timeline-table-row');
-        timelineSelectors.forEach(el => {
-            el.addEventListener('click', () => {
-                if (el.id === 'load-more-past-row' || el.id === 'load-more-future-row') return;
-                
-                const targetDate = el.getAttribute('data-date');
-                if (targetDate) {
-                    state.transitDate = targetDate;
-                    render();
-                }
-            });
-        });
-        
-        // Load More Past listener
-        const loadPastRow = document.querySelector('#load-more-past-row');
-        const handleLoadPast = (e) => {
-            e.stopPropagation();
-            state.transitRangePast += 5;
-            render();
-        };
-        if (loadPastRow) loadPastRow.addEventListener('click', handleLoadPast);
-        
-        // Load More Future listener
-        const loadFutureRow = document.querySelector('#load-more-future-row');
-        const handleLoadFuture = (e) => {
-            e.stopPropagation();
-            state.transitRangeFuture += 5;
-            render();
-        };
-        if (loadFutureRow) loadFutureRow.addEventListener('click', handleLoadFuture);
 
         // Chandrashtama Rasi Selector Pills
         const rasiPills = document.querySelectorAll('.rasi-select-pill[data-rasi]');
