@@ -533,7 +533,8 @@ body.light-mode .nav-theme {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
     padding: 6px;
     position: relative;
     color: var(--text-color, var(--text-primary));
@@ -580,6 +581,9 @@ body:not(.light-mode) .chart-cell.lagna-highlight:hover {
 }
 
 .cell-degree-info {
+    position: absolute;
+    top: 5px;
+    left: 6px;
     font-size: 0.65em;
     font-weight: 600;
     text-align: left;
@@ -594,7 +598,7 @@ body:not(.light-mode) .chart-cell.lagna-highlight:hover {
     justify-content: center;
     align-items: center;
     gap: 4px;
-    flex-grow: 1;
+    width: 100%;
     font-weight: 700;
     font-size: 1.1em;
     font-family: var(--font-tamil);
@@ -2006,6 +2010,17 @@ body.light-mode .sign-status-card {
     box-shadow: 0 2px 6px rgba(234, 88, 12, 0.25);
 }
 
+.rasi-select-pill.current-chandrashtama {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.rasi-select-pill.selected.current-chandrashtama {
+    background: #ef4444;
+    border-color: #ef4444;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
 /* Remedies Cards */
 .remedies-grid {
     display: grid;
@@ -2584,7 +2599,8 @@ body.light-mode .remedy-card {
         opacity: 1;
     }
 }
-
+
+
 
 /* ==========================================================================
    Floating Scroll To Top Button

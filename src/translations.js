@@ -103,8 +103,7 @@ export const translations = {
             title: "ஜாதகப் பலன்கள் மற்றும் குணாதிசயங்கள்",
             general: "பொதுவான குணங்கள்",
             career: "தொழில் மற்றும் வேலைவாய்ப்பு",
-            health: "ஆரோக்கியம்",
-            compatibility: "திருமணப் பொருத்தம் / நட்பு"
+            health: "ஆரோக்கியம்"
         },
         actions: {
             print: "ஜாதகத்தை அச்சிடு / PDF பதிவிறக்கு",
@@ -306,8 +305,7 @@ export const translations = {
             title: "Horoscope Predictions & Character Analysis",
             general: "General Characteristics",
             career: "Career & Profession",
-            health: "Health & Vitality",
-            compatibility: "Compatibility & Relationships"
+            health: "Health & Vitality"
         },
         actions: {
             print: "Print Horoscope / Save as PDF",
@@ -509,8 +507,7 @@ export const translations = {
             title: "कुंडली फल और स्वभाव विश्लेषण",
             general: "सामान्य विशेषताएं",
             career: "कैरियर और पेशा",
-            health: "स्वास्थ्य और जीवन शक्ति",
-            compatibility: "अनुकूलता और रिश्ते"
+            health: "स्वास्थ्य और जीवन शक्ति"
         },
         actions: {
             print: "प्रिंट करें / PDF सहेजें",
@@ -712,8 +709,7 @@ export const translations = {
             title: "జాతక ఫలితాలు & స్వభావ విశ్లేషణ",
             general: "సాధారణ లక్షణాలు",
             career: "ఉద్యోగం & వృత్తి",
-            health: "ఆరోగ్యం",
-            compatibility: "మిత్రత్వం & సంబంధాలు"
+            health: "ఆరోగ్యం"
         },
         actions: {
             print: "ప్రింట్ చేయండి / PDF సేవ్‌ చేయండి",
@@ -915,8 +911,7 @@ export const translations = {
             title: "ಜಾತಕ ಫಲಗಳು ಮತ್ತು ಸ್ವಭಾವ ವಿಶ್ಲೇಷಣೆ",
             general: "ಸಾಮಾನ್ಯ ಗುಣಲಕ್ಷಣಗಳು",
             career: "ವೃತ್ತಿ ಮತ್ತು ಉದ್ಯೋಗ",
-            health: "ಆರೋಗ್ಯ",
-            compatibility: "ಹೊಂದಾಣಿಕೆ ಮತ್ತು ಸಂಬಂಧಗಳು"
+            health: "ಆರೋಗ್ಯ"
         },
         actions: {
             print: "ಪ್ರಿಂಟ್ ಮಾಡಿ / PDF ಉಳಿಸಿ",
@@ -1118,8 +1113,7 @@ export const translations = {
             title: "ജാതക ഫലങ്ങളും സ്വഭാവ വിശകലനവും",
             general: "പൊതുവായ സ്വഭാവങ്ങൾ",
             career: "തൊഴിലും മേഖലയും",
-            health: "ആരോഗ്യം",
-            compatibility: "പൊരുത്തവും ബന്ധങ്ങളും"
+            health: "ആരോഗ്യം"
         },
         actions: {
             print: "പ്രിന്റ് ചെയ്യുക / PDF സേവ് ചെയ്യുക",

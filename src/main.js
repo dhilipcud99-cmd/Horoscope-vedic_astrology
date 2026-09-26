@@ -19,7 +19,6 @@ import {
     calculateMonthlyChandrashtama,
     calculateNextPlanetTransitions
 } from './astroCalculations.js';
-import { getPredictions } from './predictions.js';
 
 // Localized strings for Dasa search feature
 const dasaSearchTranslations = {
@@ -684,11 +683,9 @@ state.transitRangeFuture = state.transitRangeFuture || 3;
 
 // Chandrashtama Section State
 state.chandrashtamaTab = state.chandrashtamaTab || 'today';
-state.chandrashtamaSelectedRasi = state.chandrashtamaSelectedRasi !== undefined ? state.chandrashtamaSelectedRasi : 0;
 const currentSystemDate = new Date();
 state.chandrashtamaCalendarYear = state.chandrashtamaCalendarYear || currentSystemDate.getFullYear();
 state.chandrashtamaCalendarMonth = state.chandrashtamaCalendarMonth || (currentSystemDate.getMonth() + 1);
-state.planetTransitionFilter = state.planetTransitionFilter || 'all';
 state.calendarSidebarOpen = state.calendarSidebarOpen !== undefined ? state.calendarSidebarOpen : true;
 
 // Saved Profiles & Left Sidebar State
@@ -719,7 +716,6 @@ const leftSidebarTranslations = {
         navChandrashtama: "சந்திராஷ்டம விவரங்கள்",
         navTransitions: "கிரக பெயர்ச்சிகள்",
         navCalendar: "மாதாந்திர நாட்காட்டி",
-        navMatching: "திருமணப் பொருத்தம்",
         navTop: "பக்கத்தின் உச்சிக்கு செல்க",
         tools: "கருவிகள் & அமைப்புகள்",
         chartStyle: "கட்ட முறை",
@@ -751,7 +747,6 @@ const leftSidebarTranslations = {
         navChandrashtama: "Chandrashtama Details",
         navTransitions: "Planet Transitions",
         navCalendar: "Monthly Calendar",
-        navMatching: "Marriage Matchmaking",
         navTop: "Scroll to Top",
         tools: "Tools & Settings",
         chartStyle: "Chart Style",
@@ -783,7 +778,6 @@ const leftSidebarTranslations = {
         navChandrashtama: "चंद्राष्टम विवरण",
         navTransitions: "ग्रह गोचर/परिवर्तन",
         navCalendar: "मासिक पंचांग",
-        navMatching: "कुंडली मिलान",
         tools: "उपकरण और सेटिंग्स",
         chartStyle: "कुंडली प्रारूप",
         southIndian: "दक्षिण",
@@ -814,7 +808,6 @@ const leftSidebarTranslations = {
         navChandrashtama: "చంద్రాష్టమ వివరాలు",
         navTransitions: "గ్రహ సంచారాలు",
         navCalendar: "నెలవారీ క్యాలెండర్",
-        navMatching: "వివాహ పొంతన",
         tools: "సాధనాలు & సెట్టింగ్‌లు",
         chartStyle: "చార్ట్ శైలి",
         southIndian: "దక్షిణ",
@@ -845,7 +838,6 @@ const leftSidebarTranslations = {
         navChandrashtama: "ಚಂದ್ರಾಷ್ಟಮ ವಿವರಗಳು",
         navTransitions: "ಗ್ರಹ ಬದಲಾವಣೆಗಳು",
         navCalendar: "ಮಾಸಿಕ ಕ್ಯಾಲೆಂಡರ್",
-        navMatching: "ವಿವಾಹ ಹೊಂದಾಣಿಕೆ",
         navTop: "ಮೇಲಕ್ಕೆ ಹೋಗಿ",
         tools: "ಉಪಕರಣಗಳು & ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
         chartStyle: "ಚಾರ್ಟ್ ಶೈಲಿ",
@@ -877,7 +869,6 @@ const leftSidebarTranslations = {
         navChandrashtama: "ചന്ദ്രാഷ്ടമം വിവരങ്ങൾ",
         navTransitions: "ഗ്രഹ മാറ്റങ്ങൾ",
         navCalendar: "പ്രതിമാസ കലണ്ടർ",
-        navMatching: "വിവാഹ പൊരുത്തം",
         navTop: "മുകളിലേക്ക് പോകുക",
         tools: "ഉപകരണങ്ങളും ക്രമീകരണങ്ങളും",
         chartStyle: "ചാർട്ട് ശൈലി",
@@ -990,9 +981,6 @@ function renderLeftNavSidebarHtml(t, currentAccent, isLight) {
                 </a>
                 <a class="sidebar-nav-item" id="nav-link-calendar" title="${ls.navCalendar}" data-tooltip="${ls.navCalendar}">
                     <span class="hide-in-mini">${ls.navCalendar}</span>
-                </a>
-                <a class="sidebar-nav-item" id="nav-link-matching" title="${ls.navMatching}" data-tooltip="${ls.navMatching}">
-                    <span class="hide-in-mini">${ls.navMatching}</span>
                 </a>
             </div>
         </div>
@@ -1339,6 +1327,19 @@ function renderFormView(t) {
             state.transitLongitude.toFixed(2),
             state.transitLocationName
           );
+        const transitNavamsamGridHtml = state.chartStyle === 'north'
+                ? renderNorthChartGrid(currentTransit.planets, true, t)
+                : renderChartGrid(
+                        currentTransit.planets,
+                        true,
+                        t,
+                        transitStarPadaText,
+                        state.lang === 'ta' ? 'கோச்சாரம்' : 'Kocharam',
+                        `${transitDateStr.split('-').reverse().join('-')} ${state.transitTime} ${transitAmpm}`,
+                        state.transitLatitude.toFixed(2),
+                        state.transitLongitude.toFixed(2),
+                        state.transitLocationName
+                    );
 
     const transitAspectMapHtml = renderAspectMatrixHtml(currentTransit.planets, t, state.lang);
 
@@ -1389,6 +1390,15 @@ function renderFormView(t) {
                         : `<div class="chart-grid rasi-theme" style="width: 100%;">${transitRasiGridHtml}</div>`
                     }
                 </div>
+
+                <!-- Navamsa Chart -->
+                <div class="chart-box" style="padding: 0; align-items: center; max-width: 380px; width: 100%; display: flex; flex-direction: column; justify-content: center;">
+                    <div class="chart-title-header" style="font-size: 18px; margin-bottom: 15px;">${state.lang === 'ta' ? 'கோச்சார நவாம்சக் கட்டம் (Transit Navamsa)' : 'Transit Navamsa Chart (D-9)'}</div>
+                    ${state.chartStyle === 'north'
+                        ? transitNavamsamGridHtml
+                        : `<div class="chart-grid nav-theme" style="width: 100%;">${transitNavamsamGridHtml}</div>`
+                    }
+                </div>
                 
                 <!-- Aspect Map -->
                 ${transitAspectMapHtml}
@@ -1427,13 +1437,8 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
     const selectedRasiIdx = (state.chandrashtamaSelectedRasi !== undefined) ? state.chandrashtamaSelectedRasi : affectedJanmaRasiIdx;
     
     const selectedRasiKey = signKeys[selectedRasiIdx];
-    const selectedRasiName = lang === 'ta' ? t.signs[selectedRasiKey] : translations['en'].signs[selectedRasiKey];
-    const selectedRasiEng = translations['en'].signs[selectedRasiKey];
     
     const eighthHouseIdx = getChandrashtamaRasiForJanmaRasi(selectedRasiIdx);
-    const eighthHouseKey = signKeys[eighthHouseIdx];
-    const eighthHouseName = lang === 'ta' ? t.signs[eighthHouseKey] : translations['en'].signs[eighthHouseKey];
-    const eighthHouseEng = translations['en'].signs[eighthHouseKey];
     
     const transitMoonRasiName = lang === 'ta' ? t.signs[signKeys[transitMoonRasiIdx]] : translations['en'].signs[signKeys[transitMoonRasiIdx]];
     const transitMoonStarName = lang === 'ta' ? t.stars[transitMoonStar.starIdx] : translations['en'].stars[transitMoonStar.starIdx];
@@ -1469,7 +1474,6 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
             
             let pStartStr = '-';
             let pEndStr = '-';
-            let durHours = '-';
             let isPadaActive = false;
             
             if (activeOrNextPeriod) {
@@ -1487,7 +1491,6 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
                 }
                 
                 isPadaActive = nowMs >= pStart.getTime() && nowMs <= pEnd.getTime();
-                durHours = ((pEnd - pStart) / (3600 * 1000)).toFixed(1);
                 pStartStr = formatDateTimeReadable(pStart);
                 pEndStr = formatDateTimeReadable(pEnd);
             }
@@ -1514,39 +1517,11 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
                     <td style="padding: 10px 14px; vertical-align: middle; font-weight: 600; color: ${isPadaActive ? '#ef4444' : 'var(--text-primary)'}; font-size: 13.5px;">
                         ${pEndStr}
                     </td>
-                    <td style="padding: 10px 12px; text-align: center; vertical-align: middle; font-size: 12.5px; color: var(--text-secondary);">
-                        <div>${durHours} hrs</div>
-                        ${isPadaActive ? `<span class="status-badge badge-danger" style="margin-top: 3px; font-size: 10px; padding: 2px 6px;">${lang === 'ta' ? 'நடப்பில்' : 'Active'}</span>` : ''}
-                    </td>
                 </tr>
             `;
         });
     });
     
-    // Overall period banner text
-    let overallPeriodBannerHtml = '';
-    if (activeOrNextPeriod) {
-        const isOverallActive = nowMs >= activeOrNextPeriod.start.getTime() && nowMs <= activeOrNextPeriod.end.getTime();
-        const overallStartStr = formatDateTimeReadable(activeOrNextPeriod.start);
-        const overallEndStr = formatDateTimeReadable(activeOrNextPeriod.end);
-        const totalHours = ((activeOrNextPeriod.end - activeOrNextPeriod.start) / (3600 * 1000)).toFixed(1);
-        
-        overallPeriodBannerHtml = `
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px 14px; background: ${isOverallActive ? 'rgba(239, 68, 68, 0.08)' : 'rgba(0,0,0,0.03)'}; border: 1px solid ${isOverallActive ? 'rgba(239, 68, 68, 0.3)' : 'var(--card-border)'}; border-radius: 8px; font-size: 13px; margin-bottom: 12px;">
-                <div>
-                    <strong style="color: ${isOverallActive ? '#ef4444' : 'var(--accent)'};">${lang === 'ta' ? 'அடுத்த சந்திராஷ்டம முழு கால அளவு' : 'Upcoming Chandrashtama Total Window'}:</strong>
-                    <span style="margin-left: 6px; color: var(--text-primary); font-weight: 600;">${overallStartStr}</span>
-                    <span style="margin: 0 4px; color: var(--text-secondary);">${lang === 'ta' ? 'முதல்' : 'to'}</span>
-                    <span style="color: var(--text-primary); font-weight: 600;">${overallEndStr}</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px; color: var(--text-secondary);">
-                    <span><strong>${totalHours} hrs</strong> (~2.25 ${lang === 'ta' ? 'நாட்கள்' : 'days'})</span>
-                    ${isOverallActive ? `<span class="status-badge badge-danger" style="font-size: 10.5px;">${lang === 'ta' ? 'நடப்பில் உள்ளது' : 'Active Now'}</span>` : ''}
-                </div>
-            </div>
-        `;
-    }
-
     // Rasi Selector Pills
     let rasiPillsHtml = '<div class="rasi-selector-container" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; margin-bottom: 16px;">';
     for (let i = 0; i < 12; i++) {
@@ -1556,7 +1531,7 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
         const isAct = i === affectedJanmaRasiIdx;
         
         rasiPillsHtml += `
-            <button type="button" class="rasi-select-pill ${isSel ? 'selected' : ''}" data-rasi="${i}">
+            <button type="button" class="rasi-select-pill ${isSel ? 'selected' : ''} ${isAct ? 'current-chandrashtama' : ''}" data-rasi="${i}">
                 ${rName}
             </button>
         `;
@@ -1573,6 +1548,15 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
                     <div>
                         <h2 class="card-title" style="font-size: 20px; margin-bottom: 3px; text-align: left;">${title}</h2>
                         <p style="font-size: 13px; color: var(--text-secondary); margin: 0; text-align: left;">${subtitle}</p>
+                        <label style="display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12px; color: var(--text-secondary);">
+                            ${lang === 'ta' ? 'தேதி' : 'Date'}
+                            <input type="date" id="chandrashtama-date-input" value="${state.transitDate}" style="height: 30px; padding: 3px 8px; border: 1px solid var(--card-border); border-radius: 4px; background: var(--card-bg); color: var(--text-primary);">
+                        </label>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin: 6px 0 0; text-align: left;">
+                            ${lang === 'ta' ? 'நேரம்' : 'Time'}: ${state.transitTime}
+                            <span style="margin: 0 8px; opacity: 0.6;">•</span>
+                            ${lang === 'ta' ? 'இடம்' : 'Place'}: ${state.transitLocationName}
+                        </p>
                     </div>
                     <div style="font-size: 12px; background: rgba(0,0,0,0.03); border: 1px solid var(--card-border); padding: 5px 12px; border-radius: 20px; color: var(--text-secondary);">
                         ${lang === 'ta' ? 'கோச்சார சந்திரன்' : 'Transit Moon'}: <strong style="color: var(--accent);">${transitMoonRasiName} (${(moonLon % 30).toFixed(2)}°)</strong> - <span style="color: var(--text-primary); font-weight: 500;">${transitMoonStarName} (${transitMoonStar.pada}-ம் பாதம்)</span>
@@ -1584,28 +1568,6 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
 
                 <!-- Selected Sign Overview Card with Star & Pada Mapping and Dates -->
                 <div style="display: flex; flex-direction: column; gap: 14px; padding: 16px 18px; background: rgba(0,0,0,0.02); border: 1px solid var(--card-border); border-radius: 10px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                        <div>
-                            <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">
-                                ${lang === 'ta' ? 'தேர்ந்தெடுக்கப்பட்ட ஜென்ம ராசி' : 'Selected Janma Rasi'}
-                            </span>
-                            <div style="font-size: 20px; font-weight: 700; color: var(--accent); margin-top: 2px;">
-                                ${selectedRasiName} <span style="font-size: 13px; font-weight: normal; color: var(--text-secondary);">(${selectedRasiEng})</span>
-                            </div>
-                        </div>
-                        <div style="text-align: right;">
-                            <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">
-                                ${lang === 'ta' ? '8-ம் வீடு (சந்திராஷ்டம ராசி)' : '8th House (Chandrashtama Rasi)'}
-                            </span>
-                            <div style="font-size: 18px; font-weight: 700; color: #ef4444; margin-top: 2px;">
-                                ${eighthHouseName} <span style="font-size: 13px; font-weight: normal; color: var(--text-secondary);">(${eighthHouseEng})</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Overall Period Banner -->
-                    ${overallPeriodBannerHtml}
-                    
                     <!-- Star & Pada Mapping Table with Dates -->
                     <div>
                         <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
@@ -1619,7 +1581,6 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
                                         <th style="padding: 12px 12px; text-align: center; width: 14%;">${lang === 'ta' ? 'பாதம்' : 'Pada'}</th>
                                         <th style="padding: 12px 14px; text-align: left; width: 27%;">${lang === 'ta' ? 'ஆரம்ப நேரம்' : 'Start Time'}</th>
                                         <th style="padding: 12px 14px; text-align: left; width: 27%;">${lang === 'ta' ? 'முடிவு நேரம்' : 'End Time'}</th>
-                                        <th style="padding: 12px 12px; text-align: center; width: 10%;">${lang === 'ta' ? 'கால அளவு' : 'Duration'}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1640,15 +1601,7 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
     const baseDate = new Date(`${state.transitDate}T${state.transitTime}:00`);
     const transitions = calculateNextPlanetTransitions(baseDate);
     
-    const activeFilter = state.planetTransitionFilter || 'all';
-    
-    // Filter transitions
-    let filteredTransitions = transitions;
-    if (activeFilter === 'major') {
-        filteredTransitions = transitions.filter(tr => tr.isMajor);
-    } else if (activeFilter === 'inner') {
-        filteredTransitions = transitions.filter(tr => !tr.isMajor);
-    }
+    const filteredTransitions = transitions;
     
     const planetColors = {
         Sun: '#f59e0b', Moon: '#a1a1aa', Mars: '#ef4444', Mercury: '#10b981',
@@ -1681,57 +1634,6 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
         }
         return lang === 'ta' ? `இன்னும் ${days} நாட்களில்` : `In ${days} days`;
     };
-
-    // Soonest upcoming transition highlight banner
-    let highlightBannerHtml = '';
-    if (transitions.length > 0) {
-        const soonest = transitions[0];
-        const sPName = lang === 'ta' ? t.planets[soonest.name] : translations['en'].planets[soonest.name];
-        const sCurRasiName = lang === 'ta' ? t.signs[signKeys[soonest.currentRasi]] : translations['en'].signs[signKeys[soonest.currentRasi]];
-        const sNextRasiName = lang === 'ta' ? t.signs[signKeys[soonest.nextRasi]] : translations['en'].signs[signKeys[soonest.nextRasi]];
-        const sNextStarName = lang === 'ta' ? t.stars[soonest.nextStar.starIdx] : translations['en'].stars[soonest.nextStar.starIdx];
-        
-        highlightBannerHtml = `
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 12px 16px; background: rgba(202, 138, 4, 0.08); border: 1px solid rgba(202, 138, 4, 0.3); border-radius: 8px; font-size: 13.5px; margin-bottom: 14px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div>
-                        <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">
-                            ${lang === 'ta' ? 'அடுத்த பெயர்ச்சி (அருகிலுள்ள மாற்றம்)' : 'Next Upcoming Ingress'}
-                        </div>
-                        <div style="font-size: 15px; font-weight: 700; color: var(--accent); margin-top: 1px;">
-                            ${sPName}: <span style="color: var(--text-primary);">${sCurRasiName}</span> ➔ <strong style="color: #ef4444;">${sNextRasiName}</strong> <span style="font-size: 12px; font-weight: normal; color: var(--text-secondary);">(${sNextStarName} ${soonest.nextStar.pada}-ம் பாதம்)</span>
-                        </div>
-                    </div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-weight: 600; color: var(--text-primary); font-size: 13.5px;">
-                        ${formatDateTime(soonest.transitionDate)}
-                    </div>
-                    <div style="font-size: 12px; color: #ca8a04; font-weight: 600; margin-top: 2px;">
-                        ${formatTimeRemaining(soonest.diffDays)}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    // Filter Tab Buttons
-    const filterTabs = [
-        { key: 'all', label: lang === 'ta' ? 'அனைத்து கிரகங்கள் (9)' : 'All Planets (9)' },
-        { key: 'major', label: lang === 'ta' ? 'முக்கிய பெயர்ச்சிகள் (குரு, சனி, ராகு, கேது)' : 'Major Planets (Jupiter, Saturn, Rahu, Ketu)' },
-        { key: 'inner', label: lang === 'ta' ? 'உள் கிரகங்கள் (சூரியன், செவ்வாய், புதன், சுக்கிரன், சந்திரன்)' : 'Inner Planets (Sun, Mars, Mercury, Venus, Moon)' }
-    ];
-
-    let filterTabsHtml = '<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">';
-    filterTabs.forEach(tb => {
-        const isSel = tb.key === activeFilter;
-        filterTabsHtml += `
-            <button type="button" class="planet-transition-pill rasi-select-pill ${isSel ? 'selected' : ''}" data-filter="${tb.key}" style="font-size: 12.5px; padding: 6px 14px;">
-                ${tb.label}
-            </button>
-        `;
-    });
-    filterTabsHtml += '</div>';
 
     // Rows
     let rowsHtml = '';
@@ -1797,14 +1699,25 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
                     <div>
                         <h2 class="card-title" style="font-size: 20px; margin-bottom: 3px; text-align: left;">${title}</h2>
                         <p style="font-size: 13px; color: var(--text-secondary); margin: 0; text-align: left;">${subtitle}</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                            <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary);">
+                                ${lang === 'ta' ? 'தேதி' : 'Date'}
+                                <input type="date" id="transitions-date-input" value="${state.transitDate}" style="height: 30px; padding: 3px 8px; border: 1px solid var(--card-border); border-radius: 4px; background: var(--card-bg); color: var(--text-primary);">
+                            </label>
+                            <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary);">
+                                ${lang === 'ta' ? 'நேரம்' : 'Time'}
+                                <input type="time" id="transitions-time-input" value="${state.transitTime}" style="height: 30px; padding: 3px 8px; border: 1px solid var(--card-border); border-radius: 4px; background: var(--card-bg); color: var(--text-primary);">
+                            </label>
+                            <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary);">
+                                ${lang === 'ta' ? 'இடம்' : 'Location'}
+                                <input type="text" id="transitions-location-input" value="${state.transitLocationName}" placeholder="${lang === 'ta' ? 'இடத்தைத் தேடுக' : 'Search location'}" autocomplete="off" style="height: 30px; min-width: 190px; padding: 3px 8px; border: 1px solid var(--card-border); border-radius: 4px; background: var(--card-bg); color: var(--text-primary);">
+                            </label>
+                            <button type="button" id="transitions-today-btn" style="height: 30px; padding: 3px 12px; border: 1px solid var(--card-border); border-radius: 4px; background: var(--card-bg); color: var(--accent); cursor: pointer; font-weight: 600;">
+                                ${lang === 'ta' ? 'இன்று' : 'Today'}
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Highlight Banner for Soonest Ingress -->
-                ${highlightBannerHtml}
-
-                <!-- Filter Tabs -->
-                ${filterTabsHtml}
 
                 <!-- Planet Transitions Table -->
                 <div class="table-container" style="margin: 0;">
@@ -1928,10 +1841,6 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
         
         // Moon calculations at noon
         const dMoonLon = getMoonSiderealLongitude(dayNoon);
-        const dMoonRasi = getRasiSignIndex(dMoonLon);
-        const dMoonStarInfo = getStarAndPada(dMoonLon);
-        const dMoonRasiName = lang === 'ta' ? t.signs[signKeys[dMoonRasi]] : translations['en'].signs[signKeys[dMoonRasi]];
-        const dMoonStarName = lang === 'ta' ? t.stars[dMoonStarInfo.starIdx] : translations['en'].stars[dMoonStarInfo.starIdx];
         
         // Sun calculations at noon
         const dSunLon = getPlanetSiderealLongitude('Sun', dayNoon);
@@ -1965,14 +1874,6 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
 
                 <!-- Astrological details -->
                 <div style="display: flex; flex-direction: column; gap: 3px; font-size: 10px; line-height: 1.25; margin-top: auto;">
-                    <!-- Star -->
-                    <div style="font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${dMoonStarName} - ${dMoonRasiName}">
-                        ${dMoonStarName}
-                    </div>
-                    <!-- Moon Sign -->
-                    <div style="color: var(--text-secondary); font-size: 9.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        ${dMoonRasiName}
-                    </div>
                     <!-- Tithi -->
                     <div style="font-size: 9px; font-weight: 600; color: ${tithiBadgeColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         ${tithiName}
@@ -1998,10 +1899,6 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
 
     const sideMoonStarName = lang === 'ta' ? t.stars[selectedTransit.panchang.starIdx] : translations['en'].stars[selectedTransit.panchang.starIdx];
     const sideStarPadaText = `${sideMoonStarName}-${selectedTransit.panchang.pada}`;
-    const sideMoonRasiName = lang === 'ta' ? t.signs[signKeys[selectedTransit.panchang.rasiIdx]] : translations['en'].signs[signKeys[selectedTransit.panchang.rasiIdx]];
-    
-    const sideSunPlanet = selectedTransit.planets.find(p => p.name === 'Sun');
-    const sideSunRasiName = sideSunPlanet ? (lang === 'ta' ? t.signs[signKeys[sideSunPlanet.rasiIdx]] : translations['en'].signs[signKeys[sideSunPlanet.rasiIdx]]) : '';
 
     const sideRasiGridHtml = state.chartStyle === 'north'
         ? renderNorthChartGrid(selectedTransit.planets, false, t)
@@ -2054,6 +1951,16 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
                     <div>
                         <h2 class="card-title" style="font-size: 20px; margin-bottom: 3px; text-align: left;">${title}</h2>
                         <p style="font-size: 13px; color: var(--text-secondary); margin: 0; text-align: left;">${subtitle}</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                            <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary);">
+                                ${lang === 'ta' ? 'நேரம்' : 'Time'}
+                                <input type="time" id="calendar-time-input" value="${state.transitTime}" style="height: 30px; padding: 3px 8px; border: 1px solid var(--card-border); border-radius: 4px; background: var(--card-bg); color: var(--text-primary);">
+                            </label>
+                            <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary);">
+                                ${lang === 'ta' ? 'இடம்' : 'Place'}
+                                <input type="text" id="calendar-location-input" value="${state.transitLocationName}" placeholder="${lang === 'ta' ? 'இடத்தைத் தேடுக' : 'Search place'}" autocomplete="off" style="height: 30px; min-width: 190px; padding: 3px 8px; border: 1px solid var(--card-border); border-radius: 4px; background: var(--card-bg); color: var(--text-primary);">
+                            </label>
+                        </div>
                     </div>
 
                     <!-- Month & Year Controls -->
@@ -2132,14 +2039,6 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
                         <!-- Selected Date Panchangam Highlights -->
                         <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; background: rgba(0,0,0,0.02); padding: 12px; border-radius: 6px; border: 1px solid var(--card-border);">
                             <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
-                                <span style="color: var(--text-secondary);">${lang === 'ta' ? 'சந்திர ராசி & நட்சத்திரம்' : 'Moon & Star'}:</span>
-                                <strong style="color: var(--accent); font-size: 12px; text-align: right;">${sideMoonRasiName} • ${sideMoonStarName} (${selectedTransit.panchang.pada})</strong>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
-                                <span style="color: var(--text-secondary);">${lang === 'ta' ? 'சூரிய ராசி' : 'Sun Sign'}:</span>
-                                <strong style="color: var(--text-primary); font-size: 12px; text-align: right;">${sideSunRasiName}</strong>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
                                 <span style="color: var(--text-secondary);">${lang === 'ta' ? 'திதி' : 'Tithi'}:</span>
                                 <strong style="color: var(--text-primary); font-size: 12px; text-align: right;">${getTithiName(selectedTransit.panchang.tithiIdx, lang)}</strong>
                             </div>
@@ -2147,432 +2046,6 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
                     </div>
                 </div>
             </div>
-        </div>
-    `;
-}
-
-// Generate Marriage Predictor Dasa Rows with Marriage Score
-function generateMarriageDasaRows(planets, dasaTimeline, birthDateStr, t, lang) {
-    const lordColors = {
-        Sun: '#f59e0b',
-        Moon: '#a1a1aa',
-        Mars: '#ef4444',
-        Mercury: '#10b981',
-        Jupiter: '#fbbf24',
-        Venus: '#ec4899',
-        Saturn: '#3b82f6',
-        Rahu: '#6b7280',
-        Ketu: '#78350f'
-    };
-    
-    // Marriage scoring system
-    function calculateMarriageScore(lord, planets) {
-        let score = 0;
-        let indicators = [];
-        
-        // Venus is primary marriage significator
-        if (lord === 'Venus') {
-            score = 90;
-            indicators.push(`${lang === 'ta' ? 'சுக்ரன்' : 'Venus'}`);
-        }
-        // Jupiter provides expansion and good luck
-        else if (lord === 'Jupiter') {
-            score = 75;
-            indicators.push(`${lang === 'ta' ? 'குரு' : 'Jupiter'}`);
-        }
-        // Moon provides emotional connection
-        else if (lord === 'Moon') {
-            score = 65;
-            indicators.push(`${lang === 'ta' ? 'சந்திரன்' : 'Moon'}`);
-        }
-        // Mercury brings communication
-        else if (lord === 'Mercury') {
-            score = 60;
-            indicators.push(`${lang === 'ta' ? 'புதன்' : 'Mercury'}`);
-        }
-        // Sun, Mars can be challenging
-        else if (lord === 'Sun' || lord === 'Mars') {
-            score = 35;
-            indicators.push(`${lang === 'ta' ? 'चुनौतीपूर्ण' : 'Challenging'}`);
-        }
-        // Saturn needs careful consideration
-        else if (lord === 'Saturn') {
-            score = 40;
-            indicators.push(`${lang === 'ta' ? 'विवेकीয' : 'Requires Care'}`);
-        }
-        // Rahu/Ketu are unpredictable
-        else {
-            score = 50;
-            indicators.push(`${lang === 'ta' ? 'अनिश्चित' : 'Unpredictable'}`);
-        }
-        
-        return { score, indicators };
-    }
-    
-    let rowsHtml = '';
-    
-    dasaTimeline.forEach(period => {
-        const { score, indicators } = calculateMarriageScore(period.lord, planets);
-        const lordTamilName = t.planets[period.lord] || period.lord;
-        const lordEnglishName = translations['en'].planets[period.lord] || period.lord;
-        const lordDisplay = lang === 'ta' ? `${lordTamilName} (${lordEnglishName})` : lordEnglishName;
-        
-        const startStr = formatDate(new Date(period.start));
-        const endStr = formatDate(new Date(period.end));
-        const durationStr = formatDuration(period.start, period.end, t);
-        
-        let statusClass = 'badge-future';
-        if (period.status === 'active') {
-            statusClass = 'badge-active';
-        } else if (period.status === 'past') {
-            statusClass = 'badge-past';
-        }
-        
-        const bulletColor = lordColors[period.lord] || '#8b5cf6';
-        
-        // Color code based on score
-        let scoreColor = '#ef4444'; // Red
-        let scoreIndicator = score;
-        
-        if (score >= 80) {
-            scoreColor = '#10b981'; // Green - Very Good
-            scoreIndicator = `${lang === 'ta' ? 'மிகவும் சாதகம்' : 'Highly Favorable'}`;
-        } else if (score >= 60) {
-            scoreColor = '#f59e0b'; // Amber - Good
-            scoreIndicator = `${lang === 'ta' ? 'சாதகம்' : 'Favorable'}`;
-        } else if (score >= 40) {
-            scoreColor = '#f97316'; // Orange - Moderate
-            scoreIndicator = `${lang === 'ta' ? 'நடுநிலை' : 'Moderate'}`;
-        } else {
-            scoreColor = '#ef4444'; // Red - Challenging
-            scoreIndicator = `${lang === 'ta' ? 'சவாலாக' : 'Challenging'}`;
-        }
-        
-        rowsHtml += `
-            <tr class="dasa-row ${period.status === 'active' ? 'dasa-active' : ''}"
-                data-level="1"
-                data-lord="${period.lord}"
-                data-start="${new Date(period.start).toISOString()}"
-                data-end="${new Date(period.end).toISOString()}"
-                data-duration="${period.duration}"
-                style="cursor: pointer;"
-            >
-                <td>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span class="dasa-toggle-icon">&#9656;</span>
-                        <span class="dasa-bullet" style="background-color: ${bulletColor};"></span>
-                        <span style="font-weight: 600;">${lordDisplay}<span style="font-size: 12px; color: var(--text-secondary); font-weight: normal;"> - ${t.dasa.mahadasa}</span></span>
-                    </div>
-                </td>
-                <td>${startStr}</td>
-                <td>${endStr}</td>
-                <td style="text-align: center;">${durationStr}</td>
-                <td style="text-align: center; color: ${scoreColor}; font-weight: 600;">${scoreIndicator}</td>
-            </tr>
-        `;
-    });
-    
-    return rowsHtml;
-}
-
-// Generate Marriage Date Prediction based on Dasa, Bhukti, Antara
-function generateMarriageDatePrediction(planets, dasaTimeline, birthDateStr, t, lang) {
-    const birthDate = new Date(birthDateStr);
-    
-    // Marriage indicator planets: Venus, 7th lord, Moon for woman/Sun for man
-    const seventhLords = ['Mars', 'Venus', 'Mercury', 'Moon', 'Sun', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Saturn', 'Jupiter'];
-    
-    // Find 7th house planets and planets aspecting 7th house
-    const seventh = 7;
-    const planetsInSeventh = planets.filter(p => p.house === seventh);
-    const venus = planets.find(p => p.name === 'Venus');
-    const moon = planets.find(p => p.name === 'Moon');
-    const sun = planets.find(p => p.name === 'Sun');
-    
-    // Benefic planets for marriage: Venus, Jupiter, Moon, Mercury
-    const beneficMarriagePlanets = ['Venus', 'Jupiter', 'Moon', 'Mercury'];
-    
-    // Score upcoming periods for marriage probability
-    let bestPeriods = [];
-    
-    for (let i = 0; i < Math.min(5, dasaTimeline.length); i++) {
-        const mdPeriod = dasaTimeline[i];
-        
-        // Calculate Bhukti sub-periods
-        const mdObj = {
-            lord: mdPeriod.lord,
-            start: new Date(mdPeriod.start).toISOString(),
-            end: new Date(mdPeriod.end).toISOString(),
-            duration: mdPeriod.duration,
-            startAge: mdPeriod.startAge,
-            endAge: mdPeriod.endAge,
-            virtualStart: mdPeriod.virtualStart ? new Date(mdPeriod.virtualStart).toISOString() : undefined,
-            fullDuration: mdPeriod.fullDuration
-        };
-        
-        const bhuktis = calculateSubPeriods(mdObj, birthDateStr);
-        
-        bhuktis.forEach(bhukti => {
-            // Analyze Bhukti for marriage indicators
-            let score = 0;
-            let indicators = [];
-            
-            // Check if Bhukti lord is benefic for marriage
-            if (beneficMarriagePlanets.includes(bhukti.lord)) {
-                score += 30;
-                indicators.push(`${lang === 'ta' ? 'சுபப்ரகாரம்' : 'Benefic'}: ${lang === 'ta' ? t.planets[bhukti.lord] : translations['en'].planets[bhukti.lord]}`);
-            }
-            
-            // Check if Venus is involved
-            if (bhukti.lord === 'Venus' || mdPeriod.lord === 'Venus') {
-                score += 25;
-                indicators.push(`${lang === 'ta' ? 'சுக்ரன்' : 'Venus'}: ${lang === 'ta' ? 'திருமண சுபகாரி' : 'Marriage Significator'}`);
-            }
-            
-            // Check if Jupiter aspects or is present
-            if (bhukti.lord === 'Jupiter' || mdPeriod.lord === 'Jupiter') {
-                score += 20;
-                indicators.push(`${lang === 'ta' ? 'குரு' : 'Jupiter'}: ${lang === 'ta' ? 'திருமண பிரசாதகன்' : 'Marriage Benefic'}`);
-            }
-            
-            // Check if Moon/Sun is favorable (gender based)
-            if ((bhukti.lord === 'Moon' && moon) || (bhukti.lord === 'Sun' && sun)) {
-                score += 15;
-                indicators.push(`${lang === 'ta' ? 'சந்திரன்/சூரியன்' : 'Lunar/Solar'}: ${lang === 'ta' ? 'நல்ல வேளை' : 'Auspicious'}`);
-            }
-            
-            // Calculate Antara sub-periods for more precision
-            const antaras = calculateSubPeriods(bhukti, birthDateStr);
-            const beneficAntaras = antaras.filter(a => beneficMarriagePlanets.includes(a.lord));
-            
-            if (beneficAntaras.length > 0) {
-                score += 15;
-                const antaraList = beneficAntaras.map(a => lang === 'ta' ? t.planets[a.lord] : translations['en'].planets[a.lord]).join(', ');
-                indicators.push(`${lang === 'ta' ? 'அந்தரம்' : 'Antara'}: ${antaraList}`);
-            }
-            
-            if (score > 0) {
-                bestPeriods.push({
-                    dasa: mdPeriod.lord,
-                    bhukti: bhukti.lord,
-                    startDate: new Date(bhukti.start),
-                    endDate: new Date(bhukti.end),
-                    score: score,
-                    indicators: indicators
-                });
-            }
-        });
-    }
-    
-    // Sort by score descending
-    bestPeriods.sort((a, b) => b.score - a.score);
-    bestPeriods = bestPeriods.slice(0, 3);
-    
-    if (bestPeriods.length === 0) {
-        return `<p style="color: var(--text-secondary); margin: 0;">${lang === 'ta' ? 'தசா/புத்திய அடிப்படையில் திருமண பலன் மதிப்பீடு தற்போது கிடைக்கவில்லை.' : 'Marriage prediction based on Dasa/Bhukti is not available at this moment.'}</p>`;
-    }
-    
-    let predictionHtml = '';
-    bestPeriods.forEach((period, idx) => {
-        const dasaName = lang === 'ta' ? t.planets[period.dasa] : translations['en'].planets[period.dasa];
-        const bhuktiName = lang === 'ta' ? t.planets[period.bhukti] : translations['en'].planets[period.bhukti];
-        const startStr = formatDate(period.startDate);
-        const endStr = formatDate(period.endDate);
-        
-        const yearDiff = period.endDate.getFullYear() - new Date().getFullYear();
-        const monthDiff = period.endDate.getMonth() - new Date().getMonth();
-        let timelineText = '';
-        
-        if (yearDiff < 0 || (yearDiff === 0 && monthDiff < 0)) {
-            timelineText = lang === 'ta' ? 'கடந்தகাலம்' : 'Past';
-        } else if (yearDiff === 0) {
-            timelineText = lang === 'ta' ? 'இந்த வருடம்' : 'This Year';
-        } else if (yearDiff === 1) {
-            timelineText = lang === 'ta' ? 'அடுத்த வருடம்' : 'Next Year';
-        } else {
-            timelineText = lang === 'ta' ? `${yearDiff} வருடங்கள்` : `In ${yearDiff} Years`;
-        }
-        
-        const indicator = lang === 'ta' ? `${idx === 0 ? 'மிகவும் சாதகம்' : 'சாதகம்'}` : `${idx === 0 ? 'Highly Favorable' : 'Favorable'}`;
-        
-        predictionHtml += `
-            <div style="margin-bottom: 15px; padding: 12px; background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; border-radius: 2px;">
-                <div style="font-weight: 600; color: #10b981; margin-bottom: 8px;">${indicator} - ${startStr} ${lang === 'ta' ? 'முதல்' : 'from'} ${endStr} (${timelineText})</div>
-                <div style="font-size: 13px; color: var(--text-primary); margin-bottom: 6px;">
-                    <strong>${lang === 'ta' ? 'தசை' : 'Dasa'}</strong>: ${dasaName} • 
-                    <strong>${lang === 'ta' ? 'புத்தி' : 'Bhukti'}</strong>: ${bhuktiName}
-                </div>
-                <div style="font-size: 13px; color: var(--text-secondary);">
-                    ${period.indicators.map(ind => `• ${ind}`).join('<br>')}
-                </div>
-            </div>
-        `;
-    });
-    
-    return predictionHtml;
-}
-
-// Generate Marriage Predictor Table Rows
-function generateMarriageHouseRows(planets, t, lang) {
-    const houseInfo = [
-        { 
-            num: 3, 
-            ta: '3 வது பாவகம்', 
-            en: '3rd House',
-            descTa: 'உறவு, தொடர்பு, மற்றும் பேச்சு',
-            descEn: 'Relations, Communication, and Siblings'
-        },
-        { 
-            num: 7, 
-            ta: '7 வது பாவகம்', 
-            en: '7th House',
-            descTa: 'திருமணம், வாழ்க மற்றும் உறவு பங்குதாரர்',
-            descEn: 'Marriage, Life Partner, and Relationships'
-        },
-        { 
-            num: 11, 
-            ta: '11 வது பாவகம்', 
-            en: '11th House',
-            descTa: 'ஆசைகள், நட்பு, மற்றும் சமூக நலன்',
-            descEn: 'Desires, Friendships, and Social Gains'
-        }
-    ];
-    
-    // Aspect relationships in Vedic astrology
-    const aspectRules = {
-        'Sun': [7],
-        'Moon': [7],
-        'Mars': [4, 8],
-        'Mercury': [7],
-        'Jupiter': [5, 9],
-        'Venus': [7],
-        'Saturn': [3, 10],
-        'Rahu': [7],
-        'Ketu': [7],
-        'Lagna': [],
-        'Mandi': []
-    };
-    
-    let rowsHtml = '';
-    
-    houseInfo.forEach(house => {
-        // Find planets in this house
-        const planetsInHouse = planets.filter(p => p.house === house.num);
-        
-        // Find planets aspecting this house
-        const aspectingPlanets = planets.filter(p => {
-            const aspects = aspectRules[p.name] || [];
-            return aspects.includes(house.num);
-        });
-        
-        // Format planets in house
-        let planetsStr = '-';
-        if (planetsInHouse.length > 0) {
-            planetsStr = planetsInHouse.map(p => {
-                const pName = lang === 'ta' ? t.planets[p.name] : translations['en'].planets[p.name];
-                const relativeLon = p.longitude % 30;
-                const deg = Math.floor(relativeLon);
-                const min = Math.floor((relativeLon - deg) * 60);
-                return `${pName} (${deg}°${min}')`;
-            }).join(', ');
-        }
-        
-        // Format aspecting planets
-        let aspectStr = '-';
-        if (aspectingPlanets.length > 0) {
-            aspectStr = aspectingPlanets.map(p => {
-                return lang === 'ta' ? t.planets[p.name] : translations['en'].planets[p.name];
-            }).join(', ');
-        }
-        
-        const houseTitle = lang === 'ta' ? house.ta : house.en;
-        const houseDesc = lang === 'ta' ? house.descTa : house.descEn;
-        
-        rowsHtml += `
-            <tr style="border-bottom: 1px solid var(--card-border);">
-                <td style="padding: 12px; font-weight: 600; color: var(--accent);">${houseTitle}</td>
-                <td style="padding: 12px; font-size: 13px; color: var(--text-primary);">${houseDesc}</td>
-                <td style="padding: 12px; font-size: 13px; color: var(--text-primary);">${planetsStr}</td>
-                <td style="padding: 12px; font-size: 13px; color: var(--text-primary);">${aspectStr}</td>
-            </tr>
-        `;
-    });
-    
-    return rowsHtml;
-}
-
-// Generate Marriage Predictor House Analysis
-function generateMarriageHouseAnalysis(planets, houseNum, t, lang) {
-    const houseTitles = {
-        3: { ta: '3 வது பாவகம் (உறவு)', en: '3rd House (Relations)' },
-        7: { ta: '7 வது பாவகம் (திருமணம்)', en: '7th House (Marriage)' },
-        11: { ta: '11 வது பாவகம் (லாபம்)', en: '11th House (Gains)' }
-    };
-    
-    const houseDescriptions = {
-        3: { ta: 'உறவு, தொடர்பு, மற்றும் பேச்சு', en: 'Relations, Communication, and Siblings' },
-        7: { ta: 'திருமணம், வாழ்க மற்றும் உறவு பங்குதாரர்', en: 'Marriage, Life Partner, and Relationships' },
-        11: { ta: 'ஆசைகள், நட்பு, மற்றும் சமூக நலன்', en: 'Desires, Friendships, and Social Gains' }
-    };
-    
-    // Aspect relationships in Vedic astrology
-    const aspectRules = {
-        'Sun': [7],
-        'Moon': [7],
-        'Mars': [4, 8],
-        'Mercury': [7],
-        'Jupiter': [5, 9],
-        'Venus': [7],
-        'Saturn': [3, 10],
-        'Rahu': [7],
-        'Ketu': [7],
-        'Lagna': [],
-        'Mandi': []
-    };
-    
-    // Find planets in this house
-    const planetsInHouse = planets.filter(p => p.house === houseNum);
-    
-    // Find planets aspecting this house
-    const aspectingPlanets = planets.filter(p => {
-        const aspects = aspectRules[p.name] || [];
-        return aspects.includes(houseNum);
-    });
-    
-    let houseContent = '';
-    
-    // Planets in House section
-    if (planetsInHouse.length > 0) {
-        houseContent += `<div style="margin-bottom: 15px;"><span style="font-weight: 600; color: var(--accent);">${lang === 'ta' ? 'கிரகங்கள்' : 'Planets in House'}:</span><br>`;
-        planetsInHouse.forEach(p => {
-            const pName = lang === 'ta' ? t.planets[p.name] : translations['en'].planets[p.name];
-            const relativeLon = p.longitude % 30;
-            const deg = Math.floor(relativeLon);
-            const min = Math.floor((relativeLon - deg) * 60);
-            houseContent += `<div style="font-size: 13px; padding: 6px 0; color: var(--text-primary);">• ${pName} - ${deg}°${min}'</div>`;
-        });
-        houseContent += `</div>`;
-    } else {
-        houseContent += `<div style="margin-bottom: 15px; font-size: 13px; color: var(--text-secondary);">${lang === 'ta' ? 'இந்த பாவகத்தில் கிரகங்கள் இல்லை' : 'No planets in this house'}</div>`;
-    }
-    
-    // Aspecting Planets section
-    houseContent += `<div style="margin-bottom: 15px; padding-top: 15px; border-top: 1px solid var(--card-border);"><span style="font-weight: 600; color: var(--accent);">${lang === 'ta' ? 'பார்வை செய்யும் கிரகங்கள்' : 'Aspecting Planets'}:</span><br>`;
-    if (aspectingPlanets.length > 0) {
-        aspectingPlanets.forEach(p => {
-            const pName = lang === 'ta' ? t.planets[p.name] : translations['en'].planets[p.name];
-            houseContent += `<div style="font-size: 13px; padding: 6px 0; color: var(--text-primary);">• ${pName}</div>`;
-        });
-    } else {
-        houseContent += `<div style="font-size: 13px; color: var(--text-secondary);">${lang === 'ta' ? 'பார்வை செய்யும் கிரகங்கள் இல்லை' : 'No aspecting planets'}</div>`;
-    }
-    houseContent += `</div>`;
-    
-    return `
-        <div style="padding: 20px; background: rgba(0, 0, 0, 0.05); border: 1px solid var(--card-border); border-radius: 4px;">
-            <div style="font-weight: 700; font-size: 16px; color: var(--accent); margin-bottom: 10px;">${houseTitles[houseNum][lang === 'ta' ? 'ta' : 'en']}</div>
-            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px;">${houseDescriptions[houseNum][lang === 'ta' ? 'ta' : 'en']}</div>
-            ${houseContent}
         </div>
     `;
 }
@@ -3125,52 +2598,6 @@ function renderResultsView(t) {
                             ${dasaRowsHtml}
                         </tbody>
                     </table>
-                </div>
-            </div>
-            
-            <!-- Marriage Predictor -->
-            <div class="card">
-                <h2 class="card-title" style="text-align: left; margin-bottom: 20px;">${state.lang === 'ta' ? 'திருமண பலன்' : 'Marriage Predictor'}</h2>
-                
-                <!-- House Analysis Table -->
-                <div style="margin-bottom: 30px;">
-                    <h3 style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 15px;">${state.lang === 'ta' ? 'வீடு விশ்లேषணம்' : 'House Analysis'}</h3>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>${state.lang === 'ta' ? 'பாவகம்' : 'House'}</th>
-                                    <th>${state.lang === 'ta' ? 'விளக்கம்' : 'Description'}</th>
-                                    <th>${state.lang === 'ta' ? 'கிரகங்கள்' : 'Planets in House'}</th>
-                                    <th>${state.lang === 'ta' ? 'பார்வை செய்யும் கிரகங்கள்' : 'Aspecting Planets'}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${generateMarriageHouseRows(data.planets, t, state.lang)}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Marriage Timeline Analysis -->
-                <div style="margin-top: 30px;">
-                    <h3 style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 15px;">${state.lang === 'ta' ? 'திருமண தசை வரிசை' : 'Marriage Timeline (Dasa Analysis)'}</h3>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>${state.lang === 'ta' ? 'தசை/நாயகன்' : 'Dasa Lord'}</th>
-                                    <th>${state.lang === 'ta' ? 'ஆரம்பம்' : 'Start'}</th>
-                                    <th>${state.lang === 'ta' ? 'முடிவு' : 'End'}</th>
-                                    <th style="text-align: center;">${state.lang === 'ta' ? 'கால அளவு' : 'Duration'}</th>
-                                    <th style="text-align: center;">${state.lang === 'ta' ? 'திருமண பலன் ஸ்கோர்' : 'Marriage Score'}</th>
-                                </tr>
-                            </thead>
-                            <tbody id="marriage-dasa-tbody">
-                                ${generateMarriageDasaRows(data.planets, data.dasaTimeline, details.dateStr + 'T' + details.timeStr, t, state.lang)}
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
             </div>
             
@@ -4140,11 +3567,87 @@ function bindEvents() {
                 render();
             });
         }
+
+        const chandrashtamaDateInput = document.querySelector('#chandrashtama-date-input');
+        if (chandrashtamaDateInput) {
+            chandrashtamaDateInput.addEventListener('change', (e) => {
+                state.transitDate = e.target.value;
+                render();
+            });
+        }
         
         if (transitTimeInput) {
             transitTimeInput.addEventListener('change', (e) => {
                 state.transitTime = e.target.value;
                 render();
+            });
+        }
+
+        const calendarTimeInput = document.querySelector('#calendar-time-input');
+        const calendarLocationInput = document.querySelector('#calendar-location-input');
+        if (calendarTimeInput) {
+            calendarTimeInput.addEventListener('change', (e) => {
+                state.transitTime = e.target.value;
+                render();
+            });
+        }
+        if (calendarLocationInput) {
+            calendarLocationInput.addEventListener('change', () => {
+                const query = calendarLocationInput.value.trim();
+                if (query.length < 2) return;
+
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data || data.length === 0) return;
+                        const item = data[0];
+                        state.transitLocationName = formatCleanPlaceLabel(item);
+                        state.transitLatitude = parseFloat(item.lat);
+                        state.transitLongitude = parseFloat(item.lon);
+                        render();
+                    })
+                    .catch(err => console.error("Calendar location lookup failed", err));
+            });
+        }
+
+        const transitionsDateInput = document.querySelector('#transitions-date-input');
+        const transitionsTimeInput = document.querySelector('#transitions-time-input');
+        const transitionsLocationInput = document.querySelector('#transitions-location-input');
+        const transitionsTodayBtn = document.querySelector('#transitions-today-btn');
+        if (transitionsDateInput) {
+            transitionsDateInput.addEventListener('change', (e) => {
+                state.transitDate = e.target.value;
+                render();
+            });
+        }
+        if (transitionsTimeInput) {
+            transitionsTimeInput.addEventListener('change', (e) => {
+                state.transitTime = e.target.value;
+                render();
+            });
+        }
+        if (transitionsTodayBtn) {
+            transitionsTodayBtn.addEventListener('click', () => {
+                state.transitDate = new Date().toISOString().split('T')[0];
+                render();
+            });
+        }
+        if (transitionsLocationInput) {
+            transitionsLocationInput.addEventListener('change', () => {
+                const query = transitionsLocationInput.value.trim();
+                if (query.length < 2) return;
+
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data || data.length === 0) return;
+                        const item = data[0];
+                        state.transitLocationName = formatCleanPlaceLabel(item);
+                        state.transitLatitude = parseFloat(item.lat);
+                        state.transitLongitude = parseFloat(item.lon);
+                        render();
+                    })
+                    .catch(err => console.error("Transitions location lookup failed", err));
             });
         }
         
@@ -4297,18 +3800,6 @@ function bindEvents() {
             });
         });
 
-        // Planet Transition Filter Pills
-        const transitionPills = document.querySelectorAll('.planet-transition-pill[data-filter]');
-        transitionPills.forEach(pill => {
-            pill.addEventListener('click', () => {
-                const filter = pill.getAttribute('data-filter');
-                if (filter) {
-                    state.planetTransitionFilter = filter;
-                    render();
-                }
-            });
-        });
-
         // Left Sidebar Toggle & Mini Listeners
         const headerToggleLeftSidebarBtn = document.querySelector('#header-toggle-left-sidebar-btn');
         if (headerToggleLeftSidebarBtn) {
@@ -4431,21 +3922,6 @@ function bindEvents() {
                     render();
                 }
                 setTimeout(() => scrollToElement('#monthly-calendar-card'), 50);
-            });
-        }
-
-        const navMatching = document.querySelector('#nav-link-matching');
-        if (navMatching) {
-            navMatching.addEventListener('click', () => {
-                if (state.view === 'results') {
-                    scrollToElement('#marriage-predictor-card');
-                } else {
-                    const matchMsg = state.lang === 'ta' 
-                        ? 'ஜாதகத்தைக் கணித்தவுடன் திருமணப் பொருத்தம் தானாகவே கணக்கிடப்படும்!' 
-                        : 'Calculate horoscope first to view detailed marriage matching score and analysis!';
-                    alert(matchMsg);
-                    scrollToElement('#form-card');
-                }
             });
         }
 

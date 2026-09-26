@@ -151,14 +151,6 @@ export function getAIAnswerFromFreeText(horoscope, queryText, lang) {
         return getAIAnswer(horoscope, 'remedy', lang);
     }
     
-    if (query.includes('marry') || query.includes('marriage') || query.includes('love') || query.includes('partner') || query.includes('wife') || query.includes('husband') || query.includes('relationship') || query.includes('திருமணம்') || query.includes('கணவன்') || query.includes('மனைவி') || query.includes('காதல்') || query.includes('துணை') || query.includes('உறவு')) {
-        const activeDasa = horoscope.dasaTimeline.find(p => p.status === 'active') || horoscope.dasaTimeline[0];
-        const activeDasaLordName = translations[lang]?.planets[activeDasa.lord] || translations['en'].planets[activeDasa.lord];
-        return lang === 'ta'
-            ? `திருமண உறவுகள் குறித்து ஆராய்ந்ததில், தற்போதைய <b>${activeDasaLordName} தசா</b> உங்களுக்கு கூட்டு முயற்சிகளிலும் குடும்ப வாழ்விலும் ஒரு புதிய விழிப்புணர்வைத் தரும். உங்கள் நட்சத்திர நாதனின் தற்போதைய பலம் பரஸ்பர அன்பையும் விட்டுகொடுத்தலையும் வலியுறுத்துகிறது. குலதெய்வ வழிபாடு குடும்ப அமைதியை அதிகரிக்கும்.`
-            : `Regarding marriage and relationships: The current <b>${activeDasaLordName} Mahadasa</b> highlights cooperation and family adjustments. Aligning with your star qualities suggests that patience and clear communication will resolve any domestic issues. Worshipping your family deity brings long-term harmony.`;
-    }
-    
     if (query.includes('health') || query.includes('disease') || query.includes('sick') || query.includes('body') || query.includes('pain') || query.includes('உடல்') || query.includes('ஆரோக்கியம்') || query.includes('நோய்') || query.includes('வலி')) {
         const activeDasa = horoscope.dasaTimeline.find(p => p.status === 'active') || horoscope.dasaTimeline[0];
         const activeDasaLordName = translations[lang]?.planets[activeDasa.lord] || translations['en'].planets[activeDasa.lord];
