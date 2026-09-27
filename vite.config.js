@@ -2,11 +2,11 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   root: 'src',
-  base: './',
+  base: '/Horoscope_Generator_VedicAstrology/',
   build: {
-    outDir: '../',
-    emptyOutDir: false
+    outDir: '../dist',
+    emptyOutDir: true
   }
 });
 
-
+
