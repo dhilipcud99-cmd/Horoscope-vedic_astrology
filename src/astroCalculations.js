@@ -139,6 +139,67 @@ export function calculateMandiLongitude(birthDate, lat, lon) {
     return (ascTropical - ayanamsa + 360) % 360;
 }
 
+// Calculate the active planetary Hora and the sunrise/sunset boundaries for a local date and time.
+export function calculateHoraDetails(dateStr, timeStr, lat, lon) {
+    const observer = new Observer(lat, lon, 0);
+    const localMidnight = new Date(`${dateStr}T00:00:00`);
+    const requestedTime = new Date(`${dateStr}T${timeStr}:00`);
+    if (Number.isNaN(localMidnight.getTime()) || Number.isNaN(requestedTime.getTime())) return null;
+
+    const sunrise = SearchRiseSet(Body.Sun, observer, 1, new AstroTime(localMidnight), 1);
+    if (!sunrise) return null;
+    const sunset = SearchRiseSet(Body.Sun, observer, -1, new AstroTime(sunrise.date), 1);
+    const nextSunrise = sunset && SearchRiseSet(Body.Sun, observer, 1, new AstroTime(sunset.date), 1);
+    if (!sunset || !nextSunrise || sunset.date <= sunrise.date || nextSunrise.date <= sunset.date) return null;
+
+    const previousSunset = SearchRiseSet(
+        Body.Sun,
+        observer,
+        -1,
+        new AstroTime(new Date(sunrise.date.getTime() - 24 * 60 * 60 * 1000)),
+        1
+    );
+    if (!previousSunset) return null;
+
+    const horaCycle = ['Sun', 'Venus', 'Mercury', 'Moon', 'Saturn', 'Jupiter', 'Mars'];
+    const weekdayLords = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'];
+    let weekday = localMidnight.getDay();
+    let periodStart;
+    let periodEnd;
+    let horaOffset;
+
+    if (requestedTime < sunrise.date) {
+        weekday = (weekday + 6) % 7;
+        periodStart = previousSunset.date;
+        periodEnd = sunrise.date;
+        horaOffset = 12;
+    } else if (requestedTime >= sunset.date) {
+        periodStart = sunset.date;
+        periodEnd = nextSunrise.date;
+        horaOffset = 12;
+    } else {
+        periodStart = sunrise.date;
+        periodEnd = sunset.date;
+        horaOffset = 0;
+    }
+
+    const segmentDuration = (periodEnd.getTime() - periodStart.getTime()) / 12;
+    const elapsed = Math.max(0, Math.min(requestedTime.getTime() - periodStart.getTime(), periodEnd.getTime() - periodStart.getTime() - 1));
+    const segmentIndex = Math.min(11, Math.floor(elapsed / segmentDuration));
+    const startLordIndex = horaCycle.indexOf(weekdayLords[weekday]);
+    const horaIndex = (startLordIndex + horaOffset + segmentIndex) % horaCycle.length;
+    const horaEnd = new Date(periodStart.getTime() + (segmentIndex + 1) * segmentDuration);
+
+    return {
+        lord: horaCycle[horaIndex],
+        start: new Date(periodStart.getTime() + segmentIndex * segmentDuration),
+        end: horaEnd,
+        sunrise: sunrise.date,
+        sunset: sunset.date,
+        isDaytime: horaOffset === 0
+    };
+}
+
 // Calculate the full horoscope data
 export function calculateHoroscope({ name, gender, dateStr, timeStr, lat, lon, fatherName, motherName, ampm, city }) {
     const dateTimeStr = `${dateStr}T${timeStr}`;

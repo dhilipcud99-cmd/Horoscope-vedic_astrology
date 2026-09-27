@@ -92,6 +92,7 @@ export const translations = {
         ],
         panchang: {
             title: "பஞ்சாங்கம் மற்றும் பிறப்பு விபரங்கள்",
+            age: "வயது",
             star: "நட்சத்திரம்",
             rasi: "இராசி",
             lagna: "லக்னம்",
@@ -224,7 +225,7 @@ export const translations = {
         fatherNamePlaceholder: "Enter father's name",
         motherName: "Mother's Name",
         motherNamePlaceholder: "Enter mother's name",
-        calculateBtn: "Calculate Horoscope (Free)",
+        calculateBtn: "Calculate Horoscope",
         viewInEnglish: "View in English",
         viewInTamil: "தமிழில் பார்க்க",
         rasiTitle: "Rasi",
@@ -294,6 +295,7 @@ export const translations = {
         ],
         panchang: {
             title: "Panchangam & Birth Summary",
+            age: "Age",
             star: "Star (Nakshatram)",
             rasi: "Rasi (Moon Sign)",
             lagna: "Lagnam (Ascendant)",
@@ -496,6 +498,7 @@ export const translations = {
         ],
         panchang: {
             title: "पंचांग और जन्म विवरण",
+            age: "आयु",
             star: "नक्षत्र",
             rasi: "राशि (चंद्र राशि)",
             lagna: "लग्न (असेंडेंट)",
@@ -698,6 +701,7 @@ export const translations = {
         ],
         panchang: {
             title: "పంచాంగం & జనన సారాంశం",
+            age: "వయస్సు",
             star: "నక్షత్రం",
             rasi: "రాశి (చంద్ర రాశి)",
             lagna: "లగ్నం",
@@ -900,6 +904,7 @@ export const translations = {
         ],
         panchang: {
             title: "ಪಂಚಾಂಗ ಮತ್ತು ಜನನ ಸಾರಾಂಶ",
+            age: "ವಯಸ್ಸು",
             star: "ನಕ್ಷತ್ರ",
             rasi: "ರಾಶಿ (ಚಂದ್ರ ರಾಶಿ)",
             lagna: "ಲಗ್ನ",
@@ -1102,6 +1107,7 @@ export const translations = {
         ],
         panchang: {
             title: "പഞ്ചാംഗവും ജനന വിവരങ്ങളും",
+            age: "പ്രായം",
             star: "നക്ഷത്രം",
             rasi: "രാശി (ചന്ദ്ര രാശി)",
             lagna: "ലഗ്നം",

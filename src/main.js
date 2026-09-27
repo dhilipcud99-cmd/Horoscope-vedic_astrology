@@ -17,7 +17,8 @@ import {
     findMoonLongitudeTime,
     calculateUpcomingChandrashtamaForRasi,
     calculateMonthlyChandrashtama,
-    calculateNextPlanetTransitions
+    calculateNextPlanetTransitions,
+    calculateHoraDetails
 } from './astroCalculations.js';
 
 // Localized strings for Dasa search feature
@@ -312,6 +313,26 @@ function getPlanetaryStrength(pName, rasiIdx, lang) {
     }
 
     return strengthTranslations[key][lang] || strengthTranslations[key]['en'];
+}
+
+function getPlanetAspectOffsets(pName) {
+    if (pName === 'Rahu' || pName === 'Ketu') return [];
+
+    const baseOffsets = [7];
+    if (pName === 'Mars') return [...baseOffsets, 4, 8];
+    if (pName === 'Jupiter') return [...baseOffsets, 5, 9];
+    if (pName === 'Saturn') return [...baseOffsets, 3, 10];
+    return baseOffsets;
+}
+
+function getAspectTargetSignsForPlanet(planetName, planets) {
+    const planet = planets.find(p => p.name === planetName);
+    if (!planet || planetName === 'Rahu' || planetName === 'Ketu') return [];
+
+    const originSignIdx = planet.rasiIdx;
+    const offsets = getPlanetAspectOffsets(planetName);
+
+    return [...new Set(offsets.map(offset => (originSignIdx + offset - 1) % 12))];
 }
 
 function calculateAspectMatrix(planets) {
@@ -673,6 +694,10 @@ if (savedState) {
     }
 }
 state.globalZoom = parseInt(state.globalZoom, 10) || 100;
+state.chartTextScale = state.chartTextScale !== undefined ? Number(state.chartTextScale) : 1;
+state.chartTextScale = Math.min(1.6, Math.max(0.7, state.chartTextScale));
+state.chartSizeScale = state.chartSizeScale !== undefined ? Number(state.chartSizeScale) : 1;
+state.chartSizeScale = Math.min(1.5, Math.max(0.7, state.chartSizeScale));
 state.activeTab = state.activeTab || 'horoscope';
 state.selectedCity = null; // Ensure birth place is blank on initial load/refresh
 
@@ -720,6 +745,7 @@ const leftSidebarTranslations = {
         navChandrashtama: "சந்திராஷ்டம விவரங்கள்",
         navTransitions: "கிரக பெயர்ச்சிகள்",
         navCalendar: "மாதாந்திர நாட்காட்டி",
+        navHora: "ஹோரை கணிப்பான்",
         navTop: "பக்கத்தின் உச்சிக்கு செல்க",
         tools: "கருவிகள் & அமைப்புகள்",
         chartStyle: "கட்ட முறை",
@@ -751,6 +777,7 @@ const leftSidebarTranslations = {
         navChandrashtama: "Chandrashtama Details",
         navTransitions: "Planet Transitions",
         navCalendar: "Monthly Calendar",
+        navHora: "Hora Calculator",
         navTop: "Scroll to Top",
         tools: "Tools & Settings",
         chartStyle: "Chart Style",
@@ -782,6 +809,7 @@ const leftSidebarTranslations = {
         navChandrashtama: "चंद्राष्टम विवरण",
         navTransitions: "ग्रह गोचर/परिवर्तन",
         navCalendar: "मासिक पंचांग",
+        navHora: "होरा कैलकुलेटर",
         tools: "उपकरण और सेटिंग्स",
         chartStyle: "कुंडली प्रारूप",
         southIndian: "दक्षिण",
@@ -812,6 +840,7 @@ const leftSidebarTranslations = {
         navChandrashtama: "చంద్రాష్టమ వివరాలు",
         navTransitions: "గ్రహ సంచారాలు",
         navCalendar: "నెలవారీ క్యాలెండర్",
+        navHora: "హోరా కాలిక్యులేటర్",
         tools: "సాధనాలు & సెట్టింగ్‌లు",
         chartStyle: "చార్ట్ శైలి",
         southIndian: "దక్షిణ",
@@ -842,6 +871,7 @@ const leftSidebarTranslations = {
         navChandrashtama: "ಚಂದ್ರಾಷ್ಟಮ ವಿವರಗಳು",
         navTransitions: "ಗ್ರಹ ಬದಲಾವಣೆಗಳು",
         navCalendar: "ಮಾಸಿಕ ಕ್ಯಾಲೆಂಡರ್",
+        navHora: "ಹೋರಾ ಕ್ಯಾಲ್ಕುಲೇಟರ್",
         navTop: "ಮೇಲಕ್ಕೆ ಹೋಗಿ",
         tools: "ಉಪಕರಣಗಳು & ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
         chartStyle: "ಚಾರ್ಟ್ ಶೈಲಿ",
@@ -873,6 +903,7 @@ const leftSidebarTranslations = {
         navChandrashtama: "ചന്ദ്രാഷ്ടമം വിവരങ്ങൾ",
         navTransitions: "ഗ്രഹ മാറ്റങ്ങൾ",
         navCalendar: "പ്രതിമാസ കലണ്ടർ",
+        navHora: "ഹോര കാൽക്കുലേറ്റർ",
         navTop: "മുകളിലേക്ക് പോകുക",
         tools: "ഉപകരണങ്ങളും ക്രമീകരണങ്ങളും",
         chartStyle: "ചാർട്ട് ശൈലി",
@@ -937,6 +968,19 @@ function init() {
 function renderLeftNavSidebarHtml(t, currentAccent, isLight) {
     const lang = state.lang;
     const ls = leftSidebarTranslations[lang] || leftSidebarTranslations['en'];
+    const sidebarPresetsHtml = [
+        { name: 'Gold', primary: '#ca8a04', accent: '#ea580c' },
+        { name: 'Green', primary: '#059669', accent: '#0d9488' },
+        { name: 'Blue', primary: '#2563eb', accent: '#0284c7' },
+        { name: 'Red', primary: '#dc2626', accent: '#e11d48' },
+        { name: 'Purple', primary: '#7c3aed', accent: '#c084fc' }
+    ].map(preset => `
+        <button class="preset-color-dot${currentAccent.primary.toLowerCase() === preset.primary.toLowerCase() ? ' active' : ''}"
+                data-primary="${preset.primary}"
+                data-accent="${preset.accent}"
+                style="background: ${preset.primary}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${currentAccent.primary.toLowerCase() === preset.primary.toLowerCase() ? 'var(--text-primary)' : 'transparent'}; cursor: pointer; padding: 0;"
+                title="${preset.name}"></button>
+    `).join('');
 
     return `
         <!-- Sidebar Header -->
@@ -983,8 +1027,57 @@ function renderLeftNavSidebarHtml(t, currentAccent, isLight) {
                 <a class="sidebar-nav-item" id="nav-link-calendar" title="${ls.navCalendar}" data-tooltip="${ls.navCalendar}">
                     <span class="hide-in-mini">${ls.navCalendar}</span>
                 </a>
+                <a class="sidebar-nav-item" id="nav-link-hora" title="${ls.navHora}" data-tooltip="${ls.navHora}">
+                    <span class="hide-in-mini">${ls.navHora}</span>
+                </a>
             </div>
         </div>
+
+        <section class="sidebar-settings-section">
+            <div class="sidebar-section-title"><span class="hide-in-mini">${ls.tools}</span></div>
+            <div class="sidebar-settings-panel">
+                <div class="sidebar-zoom-setting">
+                    <span class="sidebar-setting-label hide-in-mini">${ls.zoom}</span>
+                    <div class="sidebar-zoom-control">
+                        <button type="button" id="sidebar-zoom-out-btn" title="${state.lang === 'ta' ? 'அளவை குறை' : 'Zoom Out'}" ${state.globalZoom <= 70 ? 'disabled' : ''}>−</button>
+                        <span>${state.globalZoom}%</span>
+                        <button type="button" id="sidebar-zoom-in-btn" title="${state.lang === 'ta' ? 'அளவை பெருக்கு' : 'Zoom In'}" ${state.globalZoom >= 130 ? 'disabled' : ''}>+</button>
+                    </div>
+                </div>
+                <div class="sidebar-appearance-controls">
+                    <button type="button" class="sidebar-setting-button" id="toggle-theme-btn" title="${isLight ? 'Dark Mode' : 'Light Mode'}">
+                        ${isLight
+                            ? '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
+                            : '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" stroke-linecap="round" stroke-linejoin="round"></path></svg>'}
+                    </button>
+                    <div class="sidebar-accent-picker">
+                        <button type="button" class="sidebar-setting-button" id="accent-menu-btn" title="${(t.accentMenu && t.accentMenu.title) || 'Accent Color'}" style="color: var(--primary);">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 21a9 9 0 100-18 9 9 0 000 18z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7.5 10.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM11.5 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM16.5 9.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM15.5 14.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="currentColor"></path></svg>
+                        </button>
+                        <div id="accent-dropdown" class="accent-dropdown-menu sidebar-accent-dropdown" style="display: none;">
+                            <div class="sidebar-dropdown-title">${(t.accentMenu && t.accentMenu.presets) || 'Preset Colors'}</div>
+                            <div class="sidebar-preset-colors" id="preset-colors-container">${sidebarPresetsHtml}</div>
+                            <div class="sidebar-custom-color">
+                                <div class="sidebar-dropdown-title">${(t.accentMenu && t.accentMenu.custom) || 'Custom Color'}</div>
+                                <div class="sidebar-custom-color-control">
+                                    <input type="color" id="custom-accent-picker" value="${currentAccent.primary}" aria-label="${(t.accentMenu && t.accentMenu.custom) || 'Custom Color'}">
+                                    <span id="custom-color-value">${currentAccent.primary.toUpperCase()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label class="sidebar-setting-label" for="lang-select">${ls.languages}</label>
+                <select class="sidebar-language-select" id="lang-select">
+                    <option value="en" ${state.lang === 'en' ? 'selected' : ''}>English</option>
+                    <option value="ta" ${state.lang === 'ta' ? 'selected' : ''}>தமிழ்</option>
+                    <option value="hi" ${state.lang === 'hi' ? 'selected' : ''}>हिन्दी</option>
+                    <option value="te" ${state.lang === 'te' ? 'selected' : ''}>తెలుగు</option>
+                    <option value="kn" ${state.lang === 'kn' ? 'selected' : ''}>ಕನ್ನಡ</option>
+                    <option value="ml" ${state.lang === 'ml' ? 'selected' : ''}>മലയാളം</option>
+                </select>
+            </div>
+        </section>
     `;
 }
 
@@ -999,7 +1092,9 @@ function render() {
     const stateToSave = {
         lang: state.lang,
         chartStyle: state.chartStyle,
-        globalZoom: state.globalZoom
+        globalZoom: state.globalZoom,
+        chartTextScale: state.chartTextScale,
+        chartSizeScale: state.chartSizeScale
     };
     localStorage.setItem('horoscope_app_state', JSON.stringify(stateToSave));
     const isLight = document.body.classList.contains('light-mode');
@@ -1038,27 +1133,6 @@ function render() {
         ml: 'വേദ ജ്യോതിഷ കണക്കുകൂട്ടലുകൾ. എല്ലാ അവകാശങ്ങളും നിക്ഷിപ്തം.'
     };
 
-    const presets = [
-        { name: 'Gold', primary: '#ca8a04', accent: '#ea580c' },
-        { name: 'Green', primary: '#059669', accent: '#0d9488' },
-        { name: 'Blue', primary: '#2563eb', accent: '#0284c7' },
-        { name: 'Red', primary: '#dc2626', accent: '#e11d48' },
-        { name: 'Purple', primary: '#7c3aed', accent: '#c084fc' }
-    ];
-
-    let presetsHtml = '';
-    presets.forEach(p => {
-        const isActive = currentAccent.primary.toLowerCase() === p.primary.toLowerCase();
-        presetsHtml += `
-            <button class="preset-color-dot${isActive ? ' active' : ''}" 
-                    data-primary="${p.primary}" 
-                    data-accent="${p.accent}" 
-                    style="background: ${p.primary}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${isActive ? 'var(--text-primary)' : 'transparent'}; cursor: pointer; transition: transform 0.2s, border-color 0.2s; padding: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"
-                    title="${p.name}">
-            </button>
-        `;
-    });
-
     const leftSidebarHtml = renderLeftNavSidebarHtml(t, currentAccent, isLight);
 
     root.innerHTML = `
@@ -1083,57 +1157,6 @@ function render() {
                                 <p>${logoSubtitles[state.lang] || logoSubtitles['en']}</p>
                             </div>
                         </div>
-                    </div>
-                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                        <!-- Global Page Zoom Widget (Visible on all pages) -->
-                        <div style="display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--card-border); padding: 0 4px; background: var(--input-bg); height: 24px; box-sizing: border-box; font-family: inherit; border-radius: 4px;">
-                            <button id="global-zoom-out-btn" style="width: 16px; height: 16px; border-radius: 50%; border: none; background: rgba(0,0,0,0.06); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: var(--text-primary); transition: background 0.2s; padding: 0;" title="${state.lang === 'ta' ? 'அளவை குறை' : 'Zoom Out'}" ${state.globalZoom <= 70 ? 'disabled style="opacity:0.4; cursor:default;"' : ''}>
-                                &minus;
-                            </button>
-                            <span style="font-size: 11px; font-weight: 600; min-width: 28px; text-align: center; color: var(--text-primary);">${state.globalZoom}%</span>
-                            <button id="global-zoom-in-btn" style="width: 16px; height: 16px; border-radius: 50%; border: none; background: rgba(0,0,0,0.06); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: var(--text-primary); transition: background 0.2s; padding: 0;" title="${state.lang === 'ta' ? 'அளவை பெருக்கு' : 'Zoom In'}" ${state.globalZoom >= 130 ? 'disabled style="opacity:0.4; cursor:default;"' : ''}>
-                                +
-                            </button>
-                        </div>
-
-                        <button class="lang-btn" id="toggle-theme-btn" style="width: 24px; height: 24px; border-radius: 0; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="${isLight ? 'Dark Mode' : 'Light Mode'}">
-                            ${isLight ? 
-                                `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" stroke-linecap="round" stroke-linejoin="round"></path></svg>` : 
-                                `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" stroke-linecap="round" stroke-linejoin="round"></path></svg>`
-                            }
-                        </button>
-                        
-                        <!-- Accent Color Picker -->
-                        <div style="position: relative; display: inline-block;">
-                            <button class="lang-btn" id="accent-menu-btn" style="width: 24px; height: 24px; border-radius: 0; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: var(--primary);" title="${(t.accentMenu && t.accentMenu.title) || 'Accent Color'}">
-                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12 21a9 9 0 100-18 9 9 0 000 18z" stroke-linecap="round" stroke-linejoin="round"></path>
-                                    <path d="M7.5 10.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM11.5 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM16.5 9.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM15.5 14.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="currentColor"></path>
-                                </svg>
-                            </button>
-                            <div id="accent-dropdown" class="accent-dropdown-menu" style="display: none; position: absolute; top: 30px; right: 0; background: var(--card-bg); border: 1px solid var(--card-border); padding: 12px; width: 220px; box-shadow: var(--shadow); z-index: 1000; flex-direction: column; gap: 10px;">
-                                <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">${(t.accentMenu && t.accentMenu.presets) || 'Preset Colors'}</div>
-                                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;" id="preset-colors-container">
-                                    ${presetsHtml}
-                                </div>
-                                <div style="border-top: 1px solid var(--card-border); margin-top: 6px; padding-top: 8px;">
-                                    <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">${(t.accentMenu && t.accentMenu.custom) || 'Custom Color'}</div>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <input type="color" id="custom-accent-picker" style="border: 1px solid var(--card-border); background: none; width: 34px; height: 34px; padding: 0; cursor: pointer;" value="${currentAccent.primary}">
-                                        <span style="font-size: 13px; font-family: monospace; color: var(--text-primary); font-weight: 600;" id="custom-color-value">${currentAccent.primary.toUpperCase()}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <select class="lang-btn" id="lang-select" style="cursor: pointer; padding: 0 4px; height: 24px; font-size: 11px;">
-                            <option value="en" ${state.lang === 'en' ? 'selected' : ''}>English</option>
-                            <option value="ta" ${state.lang === 'ta' ? 'selected' : ''}>தமிழ்</option>
-                            <option value="hi" ${state.lang === 'hi' ? 'selected' : ''}>हिन्दी</option>
-                            <option value="te" ${state.lang === 'te' ? 'selected' : ''}>తెలుగు</option>
-                            <option value="kn" ${state.lang === 'kn' ? 'selected' : ''}>ಕನ್ನಡ</option>
-                            <option value="ml" ${state.lang === 'ml' ? 'selected' : ''}>മലയാളം</option>
-                        </select>
                     </div>
                 </header>
                 <main>
@@ -1342,8 +1365,6 @@ function renderFormView(t) {
                         state.transitLocationName
                     );
 
-    const transitAspectMapHtml = renderAspectMatrixHtml(currentTransit.planets, t, state.lang);
-
     const transitCardHtml = `
         <div class="card" id="planetary-positions-card" style="display: flex; flex-direction: column; gap: 30px; align-items: center;">
             <div style="width: 100%;">
@@ -1381,28 +1402,44 @@ function renderFormView(t) {
                 </p>
             </div>
             
-            <!-- Charts Section (Rasi Chart + Aspect Map) -->
-            <div style="display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; width: 100%; align-items: start;">
+            <div class="transit-chart-controls">
+                <div class="chart-scale-control">
+                    <span>${state.lang === 'ta' ? 'உரை அளவு' : 'Text size'}</span>
+                    <div class="chart-text-controls">
+                        <button type="button" id="chart-text-smaller-btn" data-chart-text-adjust="-1" class="lang-btn" title="${state.lang === 'ta' ? 'உரை அளவை குறை' : 'Reduce text size'}" ${state.chartTextScale <= 0.7 ? 'disabled' : ''}>−</button>
+                        <output>${(state.chartTextScale * 100).toFixed(0)}%</output>
+                        <button type="button" id="chart-text-larger-btn" data-chart-text-adjust="1" class="lang-btn" title="${state.lang === 'ta' ? 'உரை அளவை பெரு' : 'Increase text size'}" ${state.chartTextScale >= 1.6 ? 'disabled' : ''}>+</button>
+                    </div>
+                </div>
+                <div class="chart-scale-control">
+                    <span>${state.lang === 'ta' ? 'கட்ட அளவு' : 'Chart size'}</span>
+                    <div class="chart-text-controls">
+                        <button type="button" data-chart-size-adjust="-1" class="lang-btn" title="${state.lang === 'ta' ? 'கட்ட அளவை குறை' : 'Reduce chart size'}" ${state.chartSizeScale <= 0.7 ? 'disabled' : ''}>−</button>
+                        <output>${(state.chartSizeScale * 100).toFixed(0)}%</output>
+                        <button type="button" data-chart-size-adjust="1" class="lang-btn" title="${state.lang === 'ta' ? 'கட்ட அளவை பெரு' : 'Increase chart size'}" ${state.chartSizeScale >= 1.5 ? 'disabled' : ''}>+</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Current Planetary Positions Charts -->
+            <div class="transit-charts-grid">
                 <!-- Rasi Chart -->
-                <div class="chart-box" style="padding: 0; align-items: center; max-width: 380px; width: 100%; display: flex; flex-direction: column; justify-content: center;">
+                <div class="chart-box transit-chart-box" style="--chart-text-scale: ${state.chartTextScale}; --chart-box-max-width: ${Math.round(520 * state.chartSizeScale)}px; --chart-max-width: ${Math.round(520 * state.chartSizeScale)}px;">
                     <div class="chart-title-header" style="font-size: 18px; margin-bottom: 15px;">${state.lang === 'ta' ? 'கோச்சார இராசி கட்டம் (Transit Rasi)' : 'Transit Rasi Chart (D-1)'}</div>
                     ${state.chartStyle === 'north'
-                        ? transitRasiGridHtml
-                        : `<div class="chart-grid rasi-theme" style="width: 100%;">${transitRasiGridHtml}</div>`
+                        ? transitRasiGridHtml.replace('<svg ', '<svg style="--chart-text-scale: ' + state.chartTextScale + ';" ')
+                        : `<div class="chart-grid rasi-theme" style="--chart-font-size: ${(14 * state.chartTextScale).toFixed(2)}px; --chart-max-width: ${Math.round(520 * state.chartSizeScale)}px;">${transitRasiGridHtml}</div>`
                     }
                 </div>
 
                 <!-- Navamsa Chart -->
-                <div class="chart-box" style="padding: 0; align-items: center; max-width: 380px; width: 100%; display: flex; flex-direction: column; justify-content: center;">
+                <div class="chart-box transit-chart-box" style="--chart-text-scale: ${state.chartTextScale}; --chart-box-max-width: ${Math.round(520 * state.chartSizeScale)}px; --chart-max-width: ${Math.round(520 * state.chartSizeScale)}px;">
                     <div class="chart-title-header" style="font-size: 18px; margin-bottom: 15px;">${state.lang === 'ta' ? 'கோச்சார நவாம்சக் கட்டம் (Transit Navamsa)' : 'Transit Navamsa Chart (D-9)'}</div>
                     ${state.chartStyle === 'north'
-                        ? transitNavamsamGridHtml
-                        : `<div class="chart-grid nav-theme" style="width: 100%;">${transitNavamsamGridHtml}</div>`
+                        ? transitNavamsamGridHtml.replace('<svg ', '<svg style="--chart-text-scale: ' + state.chartTextScale + ';" ')
+                        : `<div class="chart-grid nav-theme" style="--chart-font-size: ${(14 * state.chartTextScale).toFixed(2)}px; --chart-max-width: ${Math.round(520 * state.chartSizeScale)}px;">${transitNavamsamGridHtml}</div>`
                     }
                 </div>
                 
-                <!-- Aspect Map -->
-                ${transitAspectMapHtml}
             </div>
         </div>
     `;
@@ -1410,6 +1447,7 @@ function renderFormView(t) {
     const chandrashtamaCardHtml = renderChandrashtamaCardHtml(currentTransit, t);
     const planetTransitionsCardHtml = renderPlanetTransitionsCardHtml(currentTransit, t);
     const monthlyCalendarCardHtml = renderMonthlyCalendarCardHtml(currentTransit, t);
+    const horaCalculatorCardHtml = renderHoraCalculatorCardHtml(t);
     
     return `
         <div style="display: flex; flex-direction: column; gap: var(--space-xl); width: 100%;">
@@ -1418,6 +1456,7 @@ function renderFormView(t) {
             ${chandrashtamaCardHtml}
             ${planetTransitionsCardHtml}
             ${monthlyCalendarCardHtml}
+            ${horaCalculatorCardHtml}
         </div>
     `;
 }
@@ -2009,7 +2048,7 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
                     </div>
 
                     <!-- Right: Selected Date Gochara Chart & Highlights -->
-                    <div class="calendar-chart-column">
+                    <div class="calendar-chart-column" style="--calendar-chart-width: ${Math.round(410 * state.chartSizeScale)}px; --calendar-chart-max-width: ${Math.round(390 * state.chartSizeScale)}px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
                             <div>
                                 <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
@@ -2024,14 +2063,33 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
                             </span>
                         </div>
 
+                        <div class="calendar-chart-controls">
+                            <div class="chart-scale-control">
+                                <span>${lang === 'ta' ? 'உரை அளவு' : 'Text size'}</span>
+                                <div class="chart-text-controls">
+                                    <button type="button" data-chart-text-adjust="-1" class="lang-btn" title="${lang === 'ta' ? 'உரை அளவை குறை' : 'Reduce text size'}" ${state.chartTextScale <= 0.7 ? 'disabled' : ''}>−</button>
+                                    <output>${(state.chartTextScale * 100).toFixed(0)}%</output>
+                                    <button type="button" data-chart-text-adjust="1" class="lang-btn" title="${lang === 'ta' ? 'உரை அளவை பெரு' : 'Increase text size'}" ${state.chartTextScale >= 1.6 ? 'disabled' : ''}>+</button>
+                                </div>
+                            </div>
+                            <div class="chart-scale-control">
+                                <span>${lang === 'ta' ? 'கட்ட அளவு' : 'Chart size'}</span>
+                                <div class="chart-text-controls">
+                                    <button type="button" data-chart-size-adjust="-1" class="lang-btn" title="${lang === 'ta' ? 'கட்ட அளவை குறை' : 'Reduce chart size'}" ${state.chartSizeScale <= 0.7 ? 'disabled' : ''}>−</button>
+                                    <output>${(state.chartSizeScale * 100).toFixed(0)}%</output>
+                                    <button type="button" data-chart-size-adjust="1" class="lang-btn" title="${lang === 'ta' ? 'கட்ட அளவை பெரு' : 'Increase chart size'}" ${state.chartSizeScale >= 1.5 ? 'disabled' : ''}>+</button>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Rasi Chart -->
-                        <div class="chart-box" style="padding: 0; align-items: center; width: 100%; display: flex; flex-direction: column; justify-content: center; background: none; border: none; box-shadow: none;">
+                        <div class="chart-box calendar-rasi-chart-box" style="--chart-text-scale: ${state.chartTextScale}; --chart-box-max-width: ${Math.round(410 * state.chartSizeScale)}px;">
                             ${state.chartStyle === 'north' ? `
-                                <div class="north-chart-container" style="max-width: 290px; width: 100%;">
-                                    ${sideRasiGridHtml}
+                                <div class="north-chart-container">
+                                    ${sideRasiGridHtml.replace('<svg ', '<svg style="--chart-text-scale: ' + state.chartTextScale + ';" ')}
                                 </div>
                             ` : `
-                                <div class="chart-grid rasi-theme" style="max-width: 290px; width: 100%; aspect-ratio: 1; --chart-font-size: 10.5px;">
+                                <div class="chart-grid rasi-theme" style="--chart-max-width: ${Math.round(390 * state.chartSizeScale)}px; --chart-font-size: ${(14 * state.chartTextScale).toFixed(2)}px;">
                                     ${sideRasiGridHtml}
                                 </div>
                             `}
@@ -2051,11 +2109,87 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
     `;
 }
 
+function renderHoraCalculatorCardHtml(t) {
+    const lang = state.lang;
+    const labels = {
+        en: { title: 'Hora Calculator', subtitle: 'Find the planetary Hora for a date, time, and location.', date: 'Date', time: 'Time', place: 'Location', sunrise: 'Sunrise', sunset: 'Sunset', active: 'Current Hora', interval: 'Hora period', daytime: 'Day Hora', nighttime: 'Night Hora', note: 'Hora lengths are based on the local daylight and night durations.' },
+        ta: { title: 'ஹோரை கணிப்பான்', subtitle: 'தேதி, நேரம் மற்றும் இடத்திற்கான கிரக ஹோரையை அறியவும்.', date: 'தேதி', time: 'நேரம்', place: 'இடம்', sunrise: 'சூரிய உதயம்', sunset: 'சூரிய அஸ்தமனம்', active: 'தற்போதைய ஹோரை', interval: 'ஹோரை நேரம்', daytime: 'பகல் ஹோரை', nighttime: 'இரவு ஹோரை', note: 'உள்ளூர் பகல் மற்றும் இரவு நேர அளவுகளின் அடிப்படையில் ஹோரை கணக்கிடப்படுகிறது.' },
+        hi: { title: 'होरा कैलकुलेटर', subtitle: 'तिथि, समय और स्थान के लिए ग्रह होरा जानें।', date: 'तिथि', time: 'समय', place: 'स्थान', sunrise: 'सूर्योदय', sunset: 'सूर्यास्त', active: 'वर्तमान होरा', interval: 'होरा अवधि', daytime: 'दिन होरा', nighttime: 'रात्रि होरा', note: 'होरा की अवधि स्थानीय दिन और रात के समय के अनुसार है।' },
+        te: { title: 'హోరా కాలిక్యులేటర్', subtitle: 'తేదీ, సమయం, ప్రదేశానికి గ్రహ హోరాను తెలుసుకోండి.', date: 'తేదీ', time: 'సమయం', place: 'ప్రదేశం', sunrise: 'సూర్యోదయం', sunset: 'సూర్యాస్తమయం', active: 'ప్రస్తుత హోరా', interval: 'హోరా సమయం', daytime: 'పగటి హోరా', nighttime: 'రాత్రి హోరా', note: 'స్థానిక పగలు, రాత్రి నిడివి ఆధారంగా హోరా వ్యవధి ఉంటుంది.' },
+        kn: { title: 'ಹೋರಾ ಕ್ಯಾಲ್ಕುಲೇಟರ್', subtitle: 'ದಿನಾಂಕ, ಸಮಯ ಮತ್ತು ಸ್ಥಳದ ಗ್ರಹ ಹೋರಾವನ್ನು ತಿಳಿಯಿರಿ.', date: 'ದಿನಾಂಕ', time: 'ಸಮಯ', place: 'ಸ್ಥಳ', sunrise: 'ಸೂರ್ಯೋದಯ', sunset: 'ಸೂರ್ಯಾಸ್ತ', active: 'ಪ್ರಸ್ತುತ ಹೋರಾ', interval: 'ಹೋರಾ ಸಮಯ', daytime: 'ಹಗಲಿನ ಹೋರಾ', nighttime: 'ರಾತ್ರಿಯ ಹೋರಾ', note: 'ಸ್ಥಳೀಯ ಹಗಲು ಮತ್ತು ರಾತ್ರಿಯ ಅವಧಿಗೆ ಅನುಗುಣವಾಗಿ ಹೋರಾ ಲೆಕ್ಕಿಸಲಾಗುತ್ತದೆ.' },
+        ml: { title: 'ഹോര കാൽക്കുലേറ്റർ', subtitle: 'തീയതി, സമയം, സ്ഥലത്തിനുള്ള ഗ്രഹ ഹോര കണ്ടെത്തുക.', date: 'തീയതി', time: 'സമയം', place: 'സ്ഥലം', sunrise: 'സൂര്യോദയം', sunset: 'സൂര്യാസ്തമയം', active: 'നിലവിലെ ഹോര', interval: 'ഹോര സമയം', daytime: 'പകൽ ഹോര', nighttime: 'രാത്രി ഹോര', note: 'പ്രാദേശിക പകലിന്റെയും രാത്രിയുടെയും ദൈർഘ്യത്തെ അടിസ്ഥാനമാക്കിയാണ് ഹോര.' }
+    };
+    const copy = labels[lang] || labels.en;
+    let details = null;
+    try {
+        details = calculateHoraDetails(
+            state.transitDate,
+            state.transitTime,
+            Number(state.transitLatitude),
+            Number(state.transitLongitude)
+        );
+    } catch (error) {
+        console.warn('Hora calculation failed for the selected date and location.', error);
+    }
+
+    const formatClockTime = (date) => date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    const locationText = `${state.transitLocationName} (${Math.abs(state.transitLatitude).toFixed(2)}° ${state.transitLatitude >= 0 ? 'N' : 'S'}, ${Math.abs(state.transitLongitude).toFixed(2)}° ${state.transitLongitude >= 0 ? 'E' : 'W'})`;
+    const unavailableText = {
+        en: 'Sunrise or sunset could not be determined for this location and date.',
+        ta: 'இந்த இடம் மற்றும் தேதிக்கான சூரிய உதயம் அல்லது அஸ்தமனத்தை கணிக்க முடியவில்லை.',
+        hi: 'इस स्थान और तिथि के लिए सूर्योदय या सूर्यास्त निर्धारित नहीं किया जा सका।',
+        te: 'ఈ ప్రదేశం, తేదీకి సూర్యోదయం లేదా సూర్యాస్తమయాన్ని గుర్తించలేకపోయాము.',
+        kn: 'ಈ ಸ್ಥಳ ಮತ್ತು ದಿನಾಂಕಕ್ಕೆ ಸೂರ್ಯೋದಯ ಅಥವಾ ಸೂರ್ಯಾಸ್ತವನ್ನು ನಿರ್ಧರಿಸಲಾಗಲಿಲ್ಲ.',
+        ml: 'ഈ സ്ഥലത്തിനും തീയതിക്കും സൂര്യോദയമോ അസ്തമയമോ നിർണ്ണയിക്കാനായില്ല.'
+    };
+
+    return `
+        <section class="card hora-calculator-card" id="hora-calculator-card" aria-labelledby="hora-calculator-title">
+            <div class="hora-calculator-heading">
+                <div>
+                    <h2 class="card-title" id="hora-calculator-title">${copy.title}</h2>
+                    <p>${copy.subtitle}</p>
+                </div>
+                <span class="hora-location-chip">📍 ${locationText}</span>
+            </div>
+            <div class="hora-calculator-controls">
+                <label>
+                    <span>${copy.date}</span>
+                    <input type="date" id="hora-date-input" value="${state.transitDate}">
+                </label>
+                <label>
+                    <span>${copy.time}</span>
+                    <input type="time" id="hora-time-input" value="${state.transitTime}">
+                </label>
+                <label style="flex: 1 1 220px; min-width: 220px;">
+                    <span>${copy.place}</span>
+                    <input type="text" id="hora-location-input" value="${state.transitLocationName}" placeholder="${lang === 'ta' ? 'இடத்தைத் தேடுக' : 'Search place'}" autocomplete="off" style="height: 30px; min-width: 190px; padding: 3px 8px; border: 1px solid var(--card-border); border-radius: 4px; background: var(--card-bg); color: var(--text-primary); width: 100%; box-sizing: border-box;">
+                </label>
+            </div>
+            ${details ? `
+                <div class="hora-result-grid">
+                    <div class="hora-result-primary">
+                        <span>${copy.active}</span>
+                        <strong>${t.planets[details.lord] || details.lord}</strong>
+                        <small>${details.isDaytime ? copy.daytime : copy.nighttime}</small>
+                    </div>
+                    <div class="hora-result-detail"><span>${copy.interval}</span><strong>${formatClockTime(details.start)} – ${formatClockTime(details.end)}</strong></div>
+                    <div class="hora-result-detail"><span>${copy.sunrise}</span><strong>${formatClockTime(details.sunrise)}</strong></div>
+                    <div class="hora-result-detail"><span>${copy.sunset}</span><strong>${formatClockTime(details.sunset)}</strong></div>
+                </div>
+                <p class="hora-calculator-note">${copy.note}</p>
+            ` : `<p class="hora-calculator-unavailable" role="status">${unavailableText[lang] || unavailableText.en}</p>`}
+        </section>
+    `;
+}
+
 // Render Results View
 function renderResultsView(t) {
     const data = state.horoscope;
     const details = data.birthDetails;
     const dst = dasaSearchTranslations[state.lang] || dasaSearchTranslations['en'];
+    const birthDateObj = new Date(details.dateStr + 'T' + details.timeStr);
+    const currentAge = formatAgeYMD(getAgeYMD(birthDateObj, new Date()), t);
     
     // Get formatted Date-Time representation for the chart center
     const genderLabel = details.gender === 'male' ? `${t.male} / Male` : `${t.female} / Female`;
@@ -2082,8 +2216,6 @@ function renderResultsView(t) {
     const navamsamGridHtml = state.chartStyle === 'north'
         ? renderNorthChartGrid(data.planets, true, t)
         : renderChartGrid(data.planets, true, t, starPadaText, genderLabel, dtDisplay, latDisplay, lonDisplay, cityText);
-    
-    const resultsAspectMapHtml = renderAspectMatrixHtml(data.planets, t, state.lang);
     
     // Generate vertical placements table
     const allPlanetNames = ["Lagna", "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu", "Mandi"];
@@ -2151,6 +2283,7 @@ function renderResultsView(t) {
     
     // Panchang items
     const panchangItems = [
+        { label: t.panchang.age, value: currentAge },
         { label: t.panchang.star, value: state.lang === 'ta' ? `${moonStarTamilName} (பாதம்: ${data.panchang.pada})` : `${moonStarEnglishName} (Pada: ${data.panchang.pada})` },
         { label: t.panchang.rasi, value: state.lang === 'ta' ? t.signs[signKeys[data.panchang.rasiIdx]] : translations['en'].signs[signKeys[data.panchang.rasiIdx]] },
         { label: t.panchang.lagna, value: state.lang === 'ta' ? t.signs[signKeys[getRasiSignIndex(data.lagnaLon)]] : translations['en'].signs[signKeys[getRasiSignIndex(data.lagnaLon)]] },
@@ -2190,6 +2323,7 @@ function renderResultsView(t) {
         
         const startStr = formatDate(new Date(period.start));
         const endStr = formatDate(new Date(period.end));
+        const ageRangeStr = `${formatAgeYMD(getAgeYMD(birthDateObj, period.start), t)} - ${formatAgeYMD(getAgeYMD(birthDateObj, period.end), t)}`;
         
         const durationStr = formatDuration(period.start, period.end, t);
         
@@ -2228,14 +2362,13 @@ function renderResultsView(t) {
                 </td>
                 <td>${startStr}</td>
                 <td>${endStr}</td>
+                <td>${ageRangeStr}</td>
                 <td style="text-align: center;">${durationStr}</td>
             </tr>
         `;
     });
     
     // --- PRINT CALCULATIONS & HTML GENERATION ---
-    const birthDateObj = new Date(details.dateStr + 'T' + details.timeStr);
-    
     // 1. Timezone offset string
     const tzOffsetMinutesVal = -birthDateObj.getTimezoneOffset();
     const offsetHr = Math.floor(Math.abs(tzOffsetMinutesVal) / 60);
@@ -2477,7 +2610,7 @@ function renderResultsView(t) {
             </div>
             <!-- Charts Grid (Rasi & Navamsam side-by-side) -->
             <div class="card">
-                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
                     <!-- Chart Accent Color Picker -->
                     <div style="position: relative; display: inline-block;">
                         <button class="lang-btn" id="chart-accent-menu-btn" style="width: 34px; height: 34px; border-radius: 0; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: var(--chart-accent);" title="${(t.chartAccentMenu && t.chartAccentMenu.title) || 'Chart Accent Color'}">
@@ -2504,28 +2637,37 @@ function renderResultsView(t) {
                     <button class="lang-btn" id="toggle-chart-style-btn" style="padding: 0 12px; font-size: 13px; height: 34px; display: inline-flex; align-items: center; justify-content: center;">
                         ${state.chartStyle === 'north' ? t.actions.toggleSouthStyle : t.actions.toggleNorthStyle}
                     </button>
+                    <div style="display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.02); border: 1px solid var(--card-border); border-radius: 6px; padding: 2px;">
+                        <button type="button" id="chart-text-smaller-btn" data-chart-text-adjust="-1" class="lang-btn" style="width: 30px; height: 30px; padding: 0; font-size: 18px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;" title="${state.lang === 'ta' ? 'உரை அளவை குறை' : 'Reduce text size'}">−</button>
+                        <span style="min-width: 52px; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-secondary);">${(state.chartTextScale * 100).toFixed(0)}%</span>
+                        <button type="button" id="chart-text-larger-btn" data-chart-text-adjust="1" class="lang-btn" style="width: 30px; height: 30px; padding: 0; font-size: 18px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;" title="${state.lang === 'ta' ? 'உரை அளவை பெரு' : 'Increase text size'}">+</button>
+                    </div>
+                    <div class="chart-scale-control">
+                        <span>${state.lang === 'ta' ? 'கட்ட அளவு' : 'Chart size'}</span>
+                        <div class="chart-text-controls">
+                            <button type="button" data-chart-size-adjust="-1" class="lang-btn" title="${state.lang === 'ta' ? 'கட்ட அளவை குறை' : 'Reduce chart size'}" ${state.chartSizeScale <= 0.7 ? 'disabled' : ''}>−</button>
+                            <output>${(state.chartSizeScale * 100).toFixed(0)}%</output>
+                            <button type="button" data-chart-size-adjust="1" class="lang-btn" title="${state.lang === 'ta' ? 'கட்ட அளவை பெரு' : 'Increase chart size'}" ${state.chartSizeScale >= 1.5 ? 'disabled' : ''}>+</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="charts-grid-wrapper">
                     <!-- Rasi Chart -->
-                    <div class="chart-box">
+                    <div class="chart-box" style="--chart-box-max-width: ${Math.round(540 * state.chartSizeScale)}px; --chart-max-width: ${Math.round(540 * state.chartSizeScale)}px;">
                         <div class="chart-title-header">${state.lang === 'ta' ? 'இராசி கட்டம் (Rasi Chart)' : 'Rasi Chart (D-1)'}</div>
-                        ${state.chartStyle === 'north'
-                            ? rasiGridHtml
-                            : `<div class="chart-grid rasi-theme">${rasiGridHtml}</div>`
-                        }
+                        <div class="chart-grid rasi-theme" style="--chart-font-size: ${(14 * state.chartTextScale).toFixed(2)}px; --chart-max-width: ${Math.round(540 * state.chartSizeScale)}px;">
+                            ${rasiGridHtml}
+                        </div>
                     </div>
                     
                     <!-- Navamsam Chart -->
-                    <div class="chart-box">
+                    <div class="chart-box" style="--chart-box-max-width: ${Math.round(540 * state.chartSizeScale)}px; --chart-max-width: ${Math.round(540 * state.chartSizeScale)}px;">
                         <div class="chart-title-header">${state.lang === 'ta' ? 'நவாம்சம் கட்டம் (Navamsam Chart)' : 'Navamsam Chart (D-9)'}</div>
-                        ${state.chartStyle === 'north'
-                            ? navamsamGridHtml
-                            : `<div class="chart-grid nav-theme">${navamsamGridHtml}</div>`
-                        }
+                        <div class="chart-grid nav-theme" style="--chart-font-size: ${(14 * state.chartTextScale).toFixed(2)}px; --chart-max-width: ${Math.round(540 * state.chartSizeScale)}px;">
+                            ${navamsamGridHtml}
+                        </div>
                     </div>
                     
-                    <!-- Planetary Aspect Map -->
-                    ${resultsAspectMapHtml}
                 </div>
                 <div class="kocharam-label">
                     Kocharam : ${new Date().toLocaleTimeString()} GMT+5:30 *Planet Degree in Decimal
@@ -2592,6 +2734,7 @@ function renderResultsView(t) {
                                 <th>${t.dasa.lord}</th>
                                 <th>${t.dasa.start}</th>
                                 <th>${t.dasa.end}</th>
+                                <th>${t.dasa.age}</th>
                                 <th style="text-align: center;">${t.dasa.duration}</th>
                             </tr>
                         </thead>
@@ -2793,7 +2936,12 @@ function renderChartGrid(planets, isNavamsam, t, starPada, gender, datetime, lat
         { signIdx: 9,  row: 3, col: 1 }, // Capricorn
         { signIdx: 10, row: 2, col: 1 }  // Aquarius
     ];
-    
+
+    const selectedPlanetName = null;
+    const selectedPlanet = null;
+    const aspectTargetSigns = [];
+    const sourceSignIdx = null;
+
     // Find Lagna sign
     const lagnaPlanet = planets.find(p => p.name === 'Lagna');
     const lagnaSignIdx = lagnaPlanet ? (isNavamsam ? lagnaPlanet.navamsamIdx : lagnaPlanet.rasiIdx) : 0;
@@ -2810,8 +2958,9 @@ function renderChartGrid(planets, isNavamsam, t, starPada, gender, datetime, lat
         let planetListHtml = '';
         matchingPlanets.forEach(p => {
             const pShort = getPlanetShorthand(p, t, state.lang);
-            const degreeText = !isNavamsam ? ` (${(p.longitude % 30).toFixed(2)})` : '';
-            planetListHtml += `<div class="cell-planet-item">${pShort}${degreeText ? `<span class="planet-degree">${degreeText}</span>` : ''}</div>`;
+            const degreeText = !isNavamsam ? `(${(p.longitude % 30).toFixed(2)})` : '';
+            const arrowMarkup = '';
+            planetListHtml += `<div class="cell-planet-item">${pShort}${degreeText ? `<span class="planet-degree">${degreeText}</span>` : ''}${arrowMarkup}</div>`;
         });
         
         // House numbers (relative to Lagna, clockwise starting from Lagna = 1)
@@ -2928,6 +3077,21 @@ function getKaranaName(idx, lang) {
 
 // Bind event listeners to UI components
 function bindEvents() {
+    document.querySelectorAll('[data-chart-text-adjust]').forEach(button => {
+        button.addEventListener('click', () => {
+            const step = Number(button.getAttribute('data-chart-text-adjust')) * 0.1;
+            state.chartTextScale = Math.min(1.6, Math.max(0.7, Number((state.chartTextScale + step).toFixed(2))));
+            render();
+        });
+    });
+    document.querySelectorAll('[data-chart-size-adjust]').forEach(button => {
+        button.addEventListener('click', () => {
+            const step = Number(button.getAttribute('data-chart-size-adjust')) * 0.1;
+            state.chartSizeScale = Math.min(1.5, Math.max(0.7, Number((state.chartSizeScale + step).toFixed(2))));
+            render();
+        });
+    });
+
     // Logo Click (Go to home/form view)
     const headerLogo = document.querySelector('#header-logo');
     if (headerLogo) {
@@ -2980,7 +3144,7 @@ function bindEvents() {
 
 
 
-        // Global Page Zoom Buttons (Header & Left Sidebar - Active on ALL pages)
+    // Global page zoom controls in the left sidebar
     const handleZoomStep = (delta) => {
         const currentZoom = parseInt(state.globalZoom, 10) || 100;
         const nextZoom = currentZoom + delta;
@@ -2989,22 +3153,6 @@ function bindEvents() {
             render();
         }
     };
-
-    const globalZoomOutBtn = document.querySelector('#global-zoom-out-btn');
-    if (globalZoomOutBtn) {
-        globalZoomOutBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            handleZoomStep(-10);
-        });
-    }
-
-    const globalZoomInBtn = document.querySelector('#global-zoom-in-btn');
-    if (globalZoomInBtn) {
-        globalZoomInBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            handleZoomStep(10);
-        });
-    }
 
     const sidebarZoomOutBtn = document.querySelector('#sidebar-zoom-out-btn');
     if (sidebarZoomOutBtn) {
@@ -3573,8 +3721,52 @@ function bindEvents() {
             });
         }
 
+        document.querySelectorAll('.chart-planet-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const planetName = e.currentTarget.dataset.planetName;
+                if (!planetName) return;
+
+                state.rasiAspectPlanet = state.rasiAspectPlanet === planetName ? null : planetName;
+                render();
+            });
+        });
+
         const calendarTimeInput = document.querySelector('#calendar-time-input');
         const calendarLocationInput = document.querySelector('#calendar-location-input');
+        const horaDateInput = document.querySelector('#hora-date-input');
+        const horaTimeInput = document.querySelector('#hora-time-input');
+        const horaLocationInput = document.querySelector('#hora-location-input');
+        if (horaDateInput) {
+            horaDateInput.addEventListener('change', (e) => {
+                state.transitDate = e.target.value;
+                render();
+            });
+        }
+        if (horaTimeInput) {
+            horaTimeInput.addEventListener('change', (e) => {
+                state.transitTime = e.target.value;
+                render();
+            });
+        }
+        if (horaLocationInput) {
+            horaLocationInput.addEventListener('change', () => {
+                const query = horaLocationInput.value.trim();
+                if (query.length < 2) return;
+
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data || data.length === 0) return;
+                        const item = data[0];
+                        state.transitLocationName = formatCleanPlaceLabel(item);
+                        state.transitLatitude = parseFloat(item.lat);
+                        state.transitLongitude = parseFloat(item.lon);
+                        horaLocationInput.value = state.transitLocationName;
+                        render();
+                    })
+                    .catch(err => console.error("Hora location lookup failed", err));
+            });
+        }
         if (calendarTimeInput) {
             calendarTimeInput.addEventListener('change', (e) => {
                 state.transitTime = e.target.value;
@@ -3915,6 +4107,17 @@ function bindEvents() {
             });
         }
 
+        const navHora = document.querySelector('#nav-link-hora');
+        if (navHora) {
+            navHora.addEventListener('click', () => {
+                if (state.view !== 'form') {
+                    state.view = 'form';
+                    render();
+                }
+                setTimeout(() => scrollToElement('#hora-calculator-card'), 50);
+            });
+        }
+
         // Left Sidebar Chart Style buttons
         const sidebarChartStyleBtns = document.querySelectorAll('.sidebar-chart-style-btn[data-style]');
         sidebarChartStyleBtns.forEach(btn => {
@@ -4186,7 +4389,6 @@ function bindEvents() {
             });
         }
 
-
         // Dasa sub-period expand/collapse click handler (Event Delegation)
         const dasaTbody = document.querySelector('#dasa-tbody');
         if (dasaTbody) {
@@ -4227,6 +4429,7 @@ function bindEvents() {
                     };
                     
                     const birthDateStr = state.horoscope.birthDetails.dateStr + 'T' + state.horoscope.birthDetails.timeStr;
+                    const birthDate = new Date(birthDateStr);
                     const subPeriods = calculateSubPeriods(parentPeriod, birthDateStr);
                     
                     let newRowsHtml = '';
@@ -4256,6 +4459,7 @@ function bindEvents() {
                         
                         const startStr = formatDate(new Date(sp.start));
                         const endStr = formatDate(new Date(sp.end));
+                        const ageRangeStr = `${formatAgeYMD(getAgeYMD(birthDate, sp.start), t)} - ${formatAgeYMD(getAgeYMD(birthDate, sp.end), t)}`;
                         
                         const durationStr = formatDuration(sp.start, sp.end, t);
                         
@@ -4297,6 +4501,7 @@ function bindEvents() {
                                 </td>
                                 <td>${startStr}</td>
                                 <td>${endStr}</td>
+                                <td>${ageRangeStr}</td>
                                 <td style="text-align: center;">${durationStr}</td>
                             </tr>
                         `;

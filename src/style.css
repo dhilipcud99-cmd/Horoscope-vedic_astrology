@@ -470,8 +470,117 @@ select:focus {
 /* Charts Grid Layout */
 .charts-grid-wrapper {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 46px;
+    align-items: start;
+    justify-items: center;
+}
+
+.transit-chart-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.calendar-chart-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.calendar-rasi-chart-box {
+    width: 100%;
+    max-width: var(--calendar-chart-width, 410px);
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+}
+
+.calendar-rasi-chart-box .chart-grid,
+.calendar-rasi-chart-box .north-chart-container,
+.calendar-rasi-chart-box .north-chart-svg {
+    width: 100%;
+    max-width: var(--calendar-chart-max-width, 390px);
+}
+
+.calendar-chart-column .north-planet-list {
+    font-size: calc(12px * var(--chart-text-scale, 1));
+}
+
+.calendar-chart-column .north-rashi-num {
+    font-size: calc(13px * var(--chart-text-scale, 1));
+}
+
+.chart-scale-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.chart-text-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px;
+    border: 1px solid var(--card-border);
+    border-radius: 6px;
+}
+
+.chart-text-controls button {
+    width: 32px;
+    height: 30px;
+    padding: 0;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.chart-text-controls output {
+    min-width: 48px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.transit-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(32px, 4vw, 72px);
+    align-items: start;
+    justify-items: center;
+    width: 100%;
+}
+
+.transit-chart-box {
+    max-width: var(--chart-max-width, 540px);
+    padding: 0;
+}
+
+.transit-chart-box .chart-grid,
+.transit-chart-box .north-chart-svg {
+    width: 100%;
+    max-width: var(--chart-max-width, 520px);
+}
+
+.transit-chart-box .north-planet-list {
+    font-size: calc(12px * var(--chart-text-scale, 1));
+}
+
+.transit-chart-box .north-rashi-num {
+    font-size: calc(13px * var(--chart-text-scale, 1));
 }
 
 /* South Indian Style Chart */
@@ -479,24 +588,27 @@ select:focus {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    width: 100%;
+    max-width: var(--chart-box-max-width, 560px);
+    padding: 16px 10px 8px;
 }
 
 .chart-title-header {
     font-family: var(--font-tamil);
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 600;
-    margin-bottom: 15px;
+    margin-bottom: 18px;
     text-align: center;
 }
 
 .chart-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    width: 100%;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    grid-auto-flow: dense;
+    width: min(100%, var(--chart-max-width, 540px));
     aspect-ratio: 1;
-    max-width: var(--chart-max-width, 460px);
+    max-width: var(--chart-max-width, 540px);
     font-size: var(--chart-font-size, 14px);
     border: 2px solid var(--border-color, var(--chart-accent, #b45309));
     box-sizing: border-box;
@@ -519,6 +631,29 @@ select:focus {
     box-shadow: 0 15px 35px hsla(var(--chart-accent-h, 36), var(--chart-accent-s, 90%), var(--chart-accent-l, 45%), 0.12);
 }
 
+.nav-theme .chart-cell {
+    padding: 4px;
+}
+
+.nav-theme .cell-planets-list {
+    gap: 2px;
+    font-size: 1.1em;
+}
+
+.nav-theme .cell-planet-item {
+    padding: 1px 2px;
+    line-height: 1.1;
+}
+
+.nav-theme .planet-degree {
+    font-size: 0.68em;
+    margin-top: 1px;
+}
+
+.nav-theme .cell-house-num {
+    font-size: 0.52em;
+}
+
 body.light-mode .rasi-theme {
     --border-color: var(--chart-accent, #b45309);
     --chart-bg: transparent;
@@ -538,11 +673,16 @@ body.light-mode .nav-theme {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 6px;
+    padding: 8px;
     position: relative;
     color: var(--text-color, var(--text-primary));
     transition: var(--transition);
     background: transparent;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    aspect-ratio: 1;
 }
 
 .chart-cell:hover {
@@ -609,6 +749,7 @@ body:not(.light-mode) .chart-cell.lagna-highlight:hover {
     font-size: 1.1em;
     font-family: var(--font-tamil);
     text-align: center;
+    overflow: hidden;
 }
 
 .rasi-theme .cell-planets-list {
@@ -622,6 +763,50 @@ body:not(.light-mode) .chart-cell.lagna-highlight:hover {
     flex-direction: column;
     align-items: center;
     line-height: 1.15;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+}
+
+.chart-planet-button {
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.chart-planet-button.is-selected {
+    background: rgba(234, 88, 12, 0.12);
+    border-color: rgba(234, 88, 12, 0.6);
+    box-shadow: 0 0 0 1px rgba(234, 88, 12, 0.3);
+    padding-right: 14px;
+}
+
+.chart-planet-button.is-selected::after {
+    content: '▶';
+    position: absolute;
+    right: 3px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7em;
+    color: var(--accent);
+    font-weight: 800;
+    line-height: 1;
+}
+
+.chart-planet-button.is-target {
+    background: rgba(34, 197, 94, 0.08);
+    border-color: rgba(34, 197, 94, 0.4);
+}
+
+.chart-planet-arrow {
+    display: inline-block;
+    margin-top: 2px;
+    font-size: 0.8em;
+    color: var(--accent);
+    font-weight: 800;
+    line-height: 1;
 }
 
 .planet-degree {
@@ -630,7 +815,16 @@ body:not(.light-mode) .chart-cell.lagna-highlight:hover {
     color: #2563eb;
     opacity: 1;
     white-space: nowrap;
-    margin-top: 2px;
+    margin-top: 0;
+    line-height: 1;
+}
+
+.chart-cell.aspect-source {
+    box-shadow: inset 0 0 0 2px rgba(234, 88, 12, 0.45);
+}
+
+.chart-cell.aspect-target {
+    background: rgba(34, 197, 94, 0.08);
 }
 
 .cell-planets-list.crowded {
@@ -912,6 +1106,10 @@ footer {
     .charts-grid-wrapper {
         grid-template-columns: 1fr;
         justify-items: center;
+    }
+
+    .transit-charts-grid {
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .panchang-grid {
@@ -2217,7 +2415,7 @@ body.light-mode .remedy-card {
 /* Calendar Grid & Layout Alignment Styles */
 .calendar-card-container {
     display: flex;
-    gap: 20px;
+    gap: 12px;
     align-items: stretch;
     width: 100%;
 }
@@ -2227,16 +2425,16 @@ body.light-mode .remedy-card {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .calendar-chart-column {
-    width: 330px;
+    width: min(var(--calendar-chart-width, 440px), 48%);
     flex-shrink: 0;
     background: rgba(0, 0, 0, 0.02);
     border: 1px solid var(--card-border);
     border-radius: 8px;
-    padding: 16px;
+    padding: 12px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -2260,16 +2458,16 @@ body.light-mode .remedy-card {
 .sidebar-cal-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 6px;
+    gap: 4px;
     width: 100%;
     box-sizing: border-box;
 }
 
 .sidebar-cal-header-day {
-    padding: 7px 4px;
+    padding: 5px 4px;
     text-align: center;
     font-weight: 700;
-    font-size: 11.5px;
+    font-size: 10.5px;
     color: var(--text-secondary);
     text-transform: uppercase;
     background: rgba(0, 0, 0, 0.025);
@@ -2293,11 +2491,11 @@ body.light-mode .remedy-card {
 .sidebar-cal-cell {
     box-sizing: border-box;
     width: 100%;
-    min-height: 82px;
+    min-height: 68px;
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 6px;
-    padding: 7px 8px;
+    padding: 6px 7px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -2324,15 +2522,15 @@ body.light-mode .remedy-card {
     border: 1px dashed var(--card-border);
     opacity: 0.35;
     border-radius: 6px;
-    min-height: 82px;
+    min-height: 68px;
 }
 
 .cal-day-number {
-    font-size: 13.5px;
+    font-size: 12.5px;
     font-weight: 700;
     color: var(--text-primary);
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -2557,6 +2755,163 @@ body.light-mode .remedy-card {
     gap: 8px;
 }
 
+.sidebar-settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar-settings-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid var(--card-border);
+    border-radius: 6px;
+}
+
+.sidebar-setting-label {
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.sidebar-zoom-setting {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.sidebar-zoom-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 5px;
+    border: 1px solid var(--card-border);
+    background: var(--input-bg);
+}
+
+.sidebar-zoom-control button {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.sidebar-zoom-control button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.sidebar-zoom-control span {
+    min-width: 34px;
+    color: var(--text-primary);
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.sidebar-appearance-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidebar-setting-button {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    background: var(--btn-secondary-bg);
+    border: 1px solid var(--btn-secondary-border);
+    cursor: pointer;
+}
+
+.sidebar-setting-button:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.sidebar-accent-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar-accent-dropdown {
+    position: static;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    box-shadow: none;
+}
+
+.sidebar-dropdown-title {
+    color: var(--text-secondary);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.sidebar-preset-colors {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.sidebar-custom-color {
+    padding-top: 8px;
+    border-top: 1px solid var(--card-border);
+}
+
+.sidebar-custom-color-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.sidebar-custom-color-control input[type="color"] {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    cursor: pointer;
+}
+
+.sidebar-custom-color-control span {
+    color: var(--text-primary);
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.sidebar-language-select {
+    width: 100%;
+    height: 34px;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.app-left-sidebar.is-mini .sidebar-settings-section {
+    display: none;
+}
+
 .saved-profile-card {
     display: flex;
     align-items: center;
@@ -2734,6 +3089,134 @@ body.light-mode .remedy-card {
 .main-section-tab-btn:hover {
     color: var(--accent);
     background: rgba(0, 0, 0, 0.03);
+}
+
+.hora-calculator-card {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.hora-calculator-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.hora-calculator-heading .card-title {
+    margin: 0 0 4px;
+    text-align: left;
+}
+
+.hora-calculator-heading p,
+.hora-calculator-note {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.hora-location-chip {
+    max-width: 100%;
+    padding: 7px 10px;
+    border: 1px solid var(--card-border);
+    border-radius: 999px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.hora-calculator-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.hora-calculator-controls label {
+    display: flex;
+    flex: 1 1 180px;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.hora-calculator-controls input {
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid var(--card-border);
+    border-radius: 6px;
+    background: var(--input-bg, var(--card-bg));
+    color: var(--text-primary);
+    font: inherit;
+}
+
+.hora-result-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.hora-result-primary,
+.hora-result-detail {
+    display: flex;
+    min-height: 78px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding: 12px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.025);
+}
+
+.hora-result-primary {
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--card-border));
+    background: color-mix(in srgb, var(--accent) 8%, var(--card-bg));
+}
+
+.hora-result-primary span,
+.hora-result-detail span {
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.hora-result-primary strong {
+    color: var(--accent);
+    font-size: 21px;
+}
+
+.hora-result-primary small {
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.hora-result-detail strong {
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.hora-calculator-unavailable {
+    margin: 0;
+    padding: 14px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    background: rgba(0, 0, 0, 0.025);
+}
+
+@media (max-width: 760px) {
+    .hora-result-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 420px) {
+    .hora-result-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .main-section-tab-btn.active {
