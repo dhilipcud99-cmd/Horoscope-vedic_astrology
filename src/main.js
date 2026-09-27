@@ -1219,8 +1219,8 @@ function renderFormView(t) {
     
     const formHtml = `
         <div class="card" id="form-card">
-            <h2 class="card-title">${t.title}</h2>
-            <p class="card-subtitle">${t.subtitle}</p>
+            <h2 class="card-title section-title">${t.title}</h2>
+            <p class="card-subtitle section-subtitle">${t.subtitle}</p>
             
             <form id="horoscope-form" onsubmit="return false;">
                 <div class="form-grid">
@@ -1368,7 +1368,7 @@ function renderFormView(t) {
     const transitCardHtml = `
         <div class="card" id="planetary-positions-card" style="display: flex; flex-direction: column; gap: 30px; align-items: center;">
             <div style="width: 100%;">
-                <h2 class="card-title" style="font-size: 22px; margin-bottom: 5px; text-align: left;">${sectionTitle}</h2>
+                <h2 class="card-title section-title">${sectionTitle}</h2>
                 
                 <!-- Separate Calendar and Location Controls for Transits -->
                 <div class="transit-controls" style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.02); border: 1px solid var(--card-border); border-radius: 8px; width: 100%; box-sizing: border-box; align-items: flex-end;">
@@ -1396,13 +1396,16 @@ function renderFormView(t) {
                     </div>
                 </div>
 
-                <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <p class="section-subtitle" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
                     <span>${locationSubtitle}</span>
                     <span>${displayTransitTime} (${displayTransitDate})</span>
                 </p>
             </div>
             
             <div class="transit-chart-controls">
+                <button type="button" class="lang-btn chart-style-toggle-button" data-chart-style-toggle>
+                    ${state.chartStyle === 'north' ? t.actions.toggleSouthStyle : t.actions.toggleNorthStyle}
+                </button>
                 <div class="chart-scale-control">
                     <span>${state.lang === 'ta' ? 'உரை அளவு' : 'Text size'}</span>
                     <div class="chart-text-controls">
@@ -1586,8 +1589,8 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
             <div style="width: 100%;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
                     <div>
-                        <h2 class="card-title" style="font-size: 20px; margin-bottom: 3px; text-align: left;">${title}</h2>
-                        <p style="font-size: 13px; color: var(--text-secondary); margin: 0; text-align: left;">${subtitle}</p>
+                        <h2 class="card-title section-title chandrashtama-title">${title}</h2>
+                        <p class="section-subtitle chandrashtama-subtitle">${subtitle}</p>
                         <label style="display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12px; color: var(--text-secondary);">
                             ${lang === 'ta' ? 'தேதி' : 'Date'}
                             <input type="date" id="chandrashtama-date-input" value="${state.transitDate}" style="height: 30px; padding: 3px 8px; border: 1px solid var(--card-border); border-radius: 4px; background: var(--card-bg); color: var(--text-primary);">
@@ -1610,11 +1613,11 @@ function renderChandrashtamaCardHtml(currentTransit, t) {
                 <div style="display: flex; flex-direction: column; gap: 14px; padding: 16px 18px; background: rgba(0,0,0,0.02); border: 1px solid var(--card-border); border-radius: 10px;">
                     <!-- Star & Pada Mapping Table with Dates -->
                     <div>
-                        <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+                        <div class="section-heading chandrashtama-section-heading">
                             ${lang === 'ta' ? 'நட்சத்திர & பாத வாரியான சந்திராஷ்டம தேதிகள் மற்றும் நேரங்கள்' : 'Star & Pada-wise Chandrashtama Dates and Timings'}:
                         </div>
                         <div class="table-container" style="margin: 0;">
-                            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                            <table class="section-table chandrashtama-mapping-table" style="width: 100%; border-collapse: collapse;">
                                 <thead>
                                     <tr style="background: rgba(0,0,0,0.04); border-bottom: 2px solid var(--card-border);">
                                         <th style="padding: 12px 14px; text-align: left; width: 22%;">${lang === 'ta' ? 'நட்சத்திரம்' : 'Nakshatra'}</th>
@@ -1737,8 +1740,8 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
             <div style="width: 100%;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
                     <div>
-                        <h2 class="card-title" style="font-size: 20px; margin-bottom: 3px; text-align: left;">${title}</h2>
-                        <p style="font-size: 13px; color: var(--text-secondary); margin: 0; text-align: left;">${subtitle}</p>
+                        <h2 class="card-title section-title">${title}</h2>
+                        <p class="section-subtitle">${subtitle}</p>
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
                             <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary);">
                                 ${lang === 'ta' ? 'தேதி' : 'Date'}
@@ -1761,7 +1764,7 @@ function renderPlanetTransitionsCardHtml(currentTransit, t) {
 
                 <!-- Planet Transitions Table -->
                 <div class="table-container" style="margin: 0;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <table class="section-table" style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="background: rgba(0,0,0,0.04); border-bottom: 2px solid var(--card-border);">
                                 <th style="padding: 12px 14px; text-align: left; width: 22%;">${lang === 'ta' ? 'கிரகம்' : 'Planet'}</th>
@@ -1901,15 +1904,12 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
         if (isEkadashi) tithiBadgeColor = '#16a34a';
 
         calendarCellsHtml += `
-            <div class="sidebar-cal-cell cal-day-cell ${isSelected ? 'is-selected' : ''}" data-date="${dayStr}">
+            <div class="sidebar-cal-cell cal-day-cell ${isToday ? 'is-today' : ''} ${isSelected ? 'is-selected' : ''}" data-date="${dayStr}">
                 <!-- Date Number Header -->
                 <div style="display: flex; justify-content: space-between; align-items: center; line-height: 1; margin-bottom: 4px;">
                     <span class="cal-day-number ${isToday ? 'today-num' : ''} ${isSelected ? 'selected-num' : ''}">
                         ${day}
                     </span>
-                    <div style="display: flex; align-items: center; gap: 3px;">
-                        ${isToday ? `<span class="cal-today-badge">${lang === 'ta' ? 'இன்று' : 'Today'}</span>` : ''}
-                    </div>
                 </div>
 
                 <!-- Astrological details -->
@@ -1989,8 +1989,8 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
                 <!-- Header -->
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
                     <div>
-                        <h2 class="card-title" style="font-size: 20px; margin-bottom: 3px; text-align: left;">${title}</h2>
-                        <p style="font-size: 13px; color: var(--text-secondary); margin: 0; text-align: left;">${subtitle}</p>
+                        <h2 class="card-title section-title">${title}</h2>
+                        <p class="section-subtitle">${subtitle}</p>
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
                             <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary);">
                                 ${lang === 'ta' ? 'நேரம்' : 'Time'}
@@ -2064,6 +2064,9 @@ function renderMonthlyCalendarCardHtml(currentTransit, t) {
                         </div>
 
                         <div class="calendar-chart-controls">
+                            <button type="button" class="lang-btn chart-style-toggle-button" data-chart-style-toggle>
+                                ${state.chartStyle === 'north' ? t.actions.toggleSouthStyle : t.actions.toggleNorthStyle}
+                            </button>
                             <div class="chart-scale-control">
                                 <span>${lang === 'ta' ? 'உரை அளவு' : 'Text size'}</span>
                                 <div class="chart-text-controls">
@@ -2147,8 +2150,8 @@ function renderHoraCalculatorCardHtml(t) {
         <section class="card hora-calculator-card" id="hora-calculator-card" aria-labelledby="hora-calculator-title">
             <div class="hora-calculator-heading">
                 <div>
-                    <h2 class="card-title" id="hora-calculator-title">${copy.title}</h2>
-                    <p>${copy.subtitle}</p>
+                    <h2 class="card-title section-title" id="hora-calculator-title">${copy.title}</h2>
+                    <p class="section-subtitle">${copy.subtitle}</p>
                 </div>
                 <span class="hora-location-chip">📍 ${locationText}</span>
             </div>
@@ -2634,7 +2637,7 @@ function renderResultsView(t) {
                         </div>
                     </div>
 
-                    <button class="lang-btn" id="toggle-chart-style-btn" style="padding: 0 12px; font-size: 13px; height: 34px; display: inline-flex; align-items: center; justify-content: center;">
+                    <button class="lang-btn chart-style-toggle-button" id="toggle-chart-style-btn" data-chart-style-toggle style="padding: 0 12px; font-size: 13px; height: 34px; display: inline-flex; align-items: center; justify-content: center;">
                         ${state.chartStyle === 'north' ? t.actions.toggleSouthStyle : t.actions.toggleNorthStyle}
                     </button>
                     <div style="display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.02); border: 1px solid var(--card-border); border-radius: 6px; padding: 2px;">
@@ -2655,17 +2658,19 @@ function renderResultsView(t) {
                     <!-- Rasi Chart -->
                     <div class="chart-box" style="--chart-box-max-width: ${Math.round(540 * state.chartSizeScale)}px; --chart-max-width: ${Math.round(540 * state.chartSizeScale)}px;">
                         <div class="chart-title-header">${state.lang === 'ta' ? 'இராசி கட்டம் (Rasi Chart)' : 'Rasi Chart (D-1)'}</div>
-                        <div class="chart-grid rasi-theme" style="--chart-font-size: ${(14 * state.chartTextScale).toFixed(2)}px; --chart-max-width: ${Math.round(540 * state.chartSizeScale)}px;">
-                            ${rasiGridHtml}
-                        </div>
+                        ${state.chartStyle === 'north'
+                            ? rasiGridHtml.replace('<svg ', '<svg style="--chart-text-scale: ' + state.chartTextScale + ';" ')
+                            : `<div class="chart-grid rasi-theme" style="--chart-font-size: ${(14 * state.chartTextScale).toFixed(2)}px; --chart-max-width: ${Math.round(540 * state.chartSizeScale)}px;">${rasiGridHtml}</div>`
+                        }
                     </div>
                     
                     <!-- Navamsam Chart -->
                     <div class="chart-box" style="--chart-box-max-width: ${Math.round(540 * state.chartSizeScale)}px; --chart-max-width: ${Math.round(540 * state.chartSizeScale)}px;">
                         <div class="chart-title-header">${state.lang === 'ta' ? 'நவாம்சம் கட்டம் (Navamsam Chart)' : 'Navamsam Chart (D-9)'}</div>
-                        <div class="chart-grid nav-theme" style="--chart-font-size: ${(14 * state.chartTextScale).toFixed(2)}px; --chart-max-width: ${Math.round(540 * state.chartSizeScale)}px;">
-                            ${navamsamGridHtml}
-                        </div>
+                        ${state.chartStyle === 'north'
+                            ? navamsamGridHtml.replace('<svg ', '<svg style="--chart-text-scale: ' + state.chartTextScale + ';" ')
+                            : `<div class="chart-grid nav-theme" style="--chart-font-size: ${(14 * state.chartTextScale).toFixed(2)}px; --chart-max-width: ${Math.round(540 * state.chartSizeScale)}px;">${navamsamGridHtml}</div>`
+                        }
                     </div>
                     
                 </div>
@@ -2676,16 +2681,16 @@ function renderResultsView(t) {
             
             <!-- Panchang Summary & Details -->
             <div class="card" style="margin-bottom: 30px;">
-                <h2 class="card-title" style="text-align: left; margin-bottom: 20px;">${t.panchang.title}</h2>
+                <h2 class="card-title section-title" style="text-align: left; margin-bottom: 20px;">${t.panchang.title}</h2>
                 <div class="summary-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px 30px;">
                     ${panchangHtml}
                 </div>
             </div>
             
             <div class="card" style="margin-bottom: 30px;">
-                <h2 class="card-title" style="text-align: left; margin-bottom: 20px;">${state.lang === 'ta' ? 'கிரக நிலைகள்' : 'Planetary Placements'}</h2>
+                <h2 class="card-title section-title" style="text-align: left; margin-bottom: 20px;">${state.lang === 'ta' ? 'கிரக நிலைகள்' : 'Planetary Placements'}</h2>
                 <div class="table-container">
-                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <table class="section-table" style="width: 100%; border-collapse: collapse; text-align: left;">
                         <thead>
                             <tr style="background: rgba(0,0,0,0.02); border-bottom: 2px solid var(--card-border);">
                                 <th style="padding: 12px; text-align: left;">${state.lang === 'ta' ? 'கிரகம்' : 'Planet'}</th>
@@ -2706,11 +2711,11 @@ function renderResultsView(t) {
             
             <!-- Vimshottari Dasa Timeline -->
             <div class="card">
-                <h2 class="card-title" style="text-align: left; margin-bottom: 20px;">${t.dasa.title}</h2>
+                <h2 class="card-title section-title" style="text-align: left; margin-bottom: 20px;">${t.dasa.title}</h2>
                 
                 <!-- Dasa Search Widget -->
                 <div class="dasa-search-widget" style="margin-bottom: 25px; padding: 20px; background: rgba(0, 0, 0, 0.05); border: 1px solid var(--card-border); display: flex; flex-direction: column; gap: 15px;">
-                    <div style="font-weight: 600; font-size: 15px; color: var(--accent);">
+                    <div class="section-heading" style="color: var(--accent);">
                         ${dst.searchByDate}
                     </div>
                     <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
@@ -2728,7 +2733,7 @@ function renderResultsView(t) {
                 </div>
                 
                 <div class="table-container">
-                    <table>
+                    <table class="section-table">
                         <thead>
                             <tr>
                                 <th>${t.dasa.lord}</th>
@@ -3088,6 +3093,12 @@ function bindEvents() {
         button.addEventListener('click', () => {
             const step = Number(button.getAttribute('data-chart-size-adjust')) * 0.1;
             state.chartSizeScale = Math.min(1.5, Math.max(0.7, Number((state.chartSizeScale + step).toFixed(2))));
+            render();
+        });
+    });
+    document.querySelectorAll('[data-chart-style-toggle]').forEach(button => {
+        button.addEventListener('click', () => {
+            state.chartStyle = state.chartStyle === 'north' ? 'south' : 'north';
             render();
         });
     });
@@ -4380,15 +4391,6 @@ function bindEvents() {
             });
         }
         
-        // Toggle Chart Style Button
-        const toggleChartStyleBtn = document.querySelector('#toggle-chart-style-btn');
-        if (toggleChartStyleBtn) {
-            toggleChartStyleBtn.addEventListener('click', () => {
-                state.chartStyle = state.chartStyle === 'north' ? 'south' : 'north';
-                render();
-            });
-        }
-
         // Dasa sub-period expand/collapse click handler (Event Delegation)
         const dasaTbody = document.querySelector('#dasa-tbody');
         if (dasaTbody) {
