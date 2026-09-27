@@ -435,6 +435,7 @@ select:focus {
 .submit-btn-container {
     grid-column: span 2;
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-start;
     gap: 16px;
     margin-top: 20px;
@@ -1221,7 +1222,8 @@ footer {
     }
 
     .submit-btn,
-    #live-btn {
+    #live-btn,
+    #form-save-profile-btn {
         width: 100% !important;
         justify-content: center;
         box-sizing: border-box;
@@ -3008,6 +3010,10 @@ body.light-mode .remedy-card {
     display: none;
 }
 
+.app-left-sidebar.is-mini .saved-profiles-section {
+    display: none;
+}
+
 .saved-profile-card {
     display: flex;
     align-items: center;
@@ -3023,6 +3029,95 @@ body.light-mode .remedy-card {
 
 .saved-profile-card:hover {
     border-color: var(--accent);
+}
+
+.saved-profiles-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.saved-profile-save-btn {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--accent) 10%, var(--card-bg));
+    color: var(--accent);
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.saved-profile-save-btn:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+.saved-profiles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.saved-profile-card button {
+    border: 0;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.saved-profile-card .load-profile-btn {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 0;
+    text-align: left;
+}
+
+.saved-profile-name,
+.saved-profile-card small {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.saved-profile-name {
+    font-weight: 700;
+}
+
+.saved-profile-card small,
+.saved-profiles-empty {
+    color: var(--text-secondary);
+    font-size: 10.5px;
+}
+
+.saved-profile-card .delete-profile-btn {
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    color: var(--text-secondary);
+    font-size: 17px;
+    line-height: 1;
+}
+
+.saved-profile-card .delete-profile-btn:hover {
+    color: #ef4444;
+}
+
+.saved-profiles-empty {
+    margin: 0;
+    padding: 4px 2px;
 }
 
 .app-main-workspace {

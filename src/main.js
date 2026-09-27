@@ -982,6 +982,23 @@ function renderLeftNavSidebarHtml(t, currentAccent, isLight) {
                 title="${preset.name}"></button>
     `).join('');
 
+    const escapeProfileText = (value) => String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[char]);
+    const savedProfilesHtml = (state.savedProfiles || []).map((profile, index) => `
+        <div class="saved-profile-card">
+            <button type="button" class="load-profile-btn" data-index="${index}" title="${escapeProfileText(ls.loadProfile)}">
+                <span class="saved-profile-name">${escapeProfileText(profile.name)}</span>
+                <small>${escapeProfileText(profile.personName || '')}${profile.dateStr ? ` · ${escapeProfileText(profile.dateStr)}` : ''}</small>
+            </button>
+            <button type="button" class="delete-profile-btn" data-index="${index}" title="${escapeProfileText(ls.deleteProfile)}" aria-label="${escapeProfileText(ls.deleteProfile)}">×</button>
+        </div>
+    `).join('') || `<p class="saved-profiles-empty">${escapeProfileText(ls.noProfiles)}</p>`;
+
     return `
         <!-- Sidebar Header -->
         <div class="left-sidebar-header">
@@ -1077,6 +1094,12 @@ function renderLeftNavSidebarHtml(t, currentAccent, isLight) {
                     <option value="ml" ${state.lang === 'ml' ? 'selected' : ''}>മലയാളം</option>
                 </select>
             </div>
+        </section>
+
+        <section class="saved-profiles-section">
+            <div class="sidebar-section-title"><span class="hide-in-mini">${ls.savedProfiles}</span></div>
+            <button type="button" id="save-current-profile-btn" data-save-profile class="saved-profile-save-btn">${ls.saveCurrent}</button>
+            <div class="saved-profiles-list">${savedProfilesHtml}</div>
         </section>
     `;
 }
@@ -1186,6 +1209,14 @@ function render() {
 // Render the Input Form
 function renderFormView(t) {
     const currentYear = new Date().getFullYear();
+    const saveProfileLabel = {
+        en: 'Save Profile',
+        ta: 'ஜாதகத்தைச் சேமி',
+        hi: 'प्रोफ़ाइल सहेजें',
+        te: 'ప్రొఫైల్‌ను సేవ్ చేయండి',
+        kn: 'ಪ್ರೊಫೈಲ್ ಉಳಿಸಿ',
+        ml: 'പ്രൊഫൈൽ സംരക്ഷിക്കുക'
+    }[state.lang] || 'Save Profile';
     
     // Day options (1-31)
     let daysHtml = `<option value="">${t.day}</option>`;
@@ -1299,6 +1330,9 @@ function renderFormView(t) {
                         </button>
                         <button type="button" class="btn-secondary" id="live-btn">
                             <span>${state.lang === 'ta' ? 'இப்போதைய ஜாதகம் (Live)' : 'Live Horoscope'}</span>
+                        </button>
+                        <button type="button" class="btn-secondary" id="form-save-profile-btn" data-save-profile>
+                            <span>${saveProfileLabel}</span>
                         </button>
                     </div>
                 </div>
@@ -3080,8 +3114,124 @@ function getKaranaName(idx, lang) {
     return lang === 'ta' ? karanasTa[kIdx] : karanasEn[kIdx];
 }
 
+function bindSavedProfileEvents() {
+    document.querySelectorAll('[data-save-profile]').forEach(saveProfileBtn => {
+        saveProfileBtn.addEventListener('click', () => {
+            const ls = leftSidebarTranslations[state.lang] || leftSidebarTranslations.en;
+            let name = '';
+            let gender = 'male';
+            let place = '';
+            let day = '';
+            let month = '';
+            let year = '';
+            let hour = '';
+            let minute = '';
+            let ampm = 'PM';
+            let cityObj = state.selectedCity;
+
+            if (state.view === 'results' && state.horoscope?.birthDetails) {
+                const bd = state.horoscope.birthDetails;
+                name = bd.name || '';
+                gender = bd.gender || 'male';
+                place = bd.city || '';
+                const [y, m, d] = (bd.dateStr || '').split('-');
+                year = y; month = m; day = d;
+                const [h, min] = (bd.timeStr || '').split(':');
+                hour = h; minute = min; ampm = bd.ampm || 'PM';
+                cityObj = { name: place, tamilName: place, lat: bd.lat, lon: bd.lon };
+            } else {
+                name = document.querySelector('#input-name')?.value || '';
+                gender = document.querySelector('#input-gender')?.value || 'male';
+                place = document.querySelector('#input-place')?.value || '';
+                day = document.querySelector('#select-day')?.value || '';
+                month = document.querySelector('#select-month')?.value || '';
+                year = document.querySelector('#select-year')?.value || '';
+                hour = document.querySelector('#select-hour')?.value || '';
+                minute = document.querySelector('#select-minute')?.value || '';
+                ampm = document.querySelector('#select-ampm')?.value || 'PM';
+            }
+
+            if (!name || !day || !month || !year) {
+                alert(state.lang === 'ta'
+                    ? 'தயவுசெய்து பெயர் மற்றும் பிறந்த தேதியை உள்ளிடவும்.'
+                    : 'Please enter at least Name and Birth Date to save profile.');
+                return;
+            }
+
+            const defaultName = `${name} (${day}-${month}-${year})`;
+            const profileLabel = prompt(ls.enterProfileName, defaultName);
+            if (!profileLabel?.trim()) return;
+
+            const newProfile = {
+                id: 'prof_' + Date.now(),
+                name: profileLabel.trim(),
+                personName: name,
+                gender,
+                place,
+                day,
+                month,
+                year,
+                dateStr: `${year}-${month}-${day}`,
+                hour,
+                minute,
+                ampm,
+                city: cityObj
+            };
+
+            state.savedProfiles = [newProfile, ...(state.savedProfiles || [])];
+            localStorage.setItem('horoscope_saved_profiles', JSON.stringify(state.savedProfiles));
+            alert(ls.profileSaved);
+            render();
+        });
+    });
+
+    document.querySelectorAll('.load-profile-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const index = Number.parseInt(button.getAttribute('data-index'), 10);
+            const profile = state.savedProfiles?.[index];
+            if (!profile) return;
+
+            state.view = 'form';
+            state.selectedCity = profile.city || null;
+            render();
+
+            setTimeout(() => {
+                const values = {
+                    '#input-name': profile.personName || profile.name,
+                    '#input-gender': profile.gender || 'male',
+                    '#input-place': profile.place || '',
+                    '#select-day': profile.day || '',
+                    '#select-month': profile.month || '',
+                    '#select-year': profile.year || '',
+                    '#select-hour': profile.hour || '',
+                    '#select-minute': profile.minute || '',
+                    '#select-ampm': profile.ampm || 'PM'
+                };
+                Object.entries(values).forEach(([selector, value]) => {
+                    const input = document.querySelector(selector);
+                    if (input) input.value = value;
+                });
+                scrollToElement('#form-card');
+            }, 50);
+        });
+    });
+
+    document.querySelectorAll('.delete-profile-btn').forEach(button => {
+        button.addEventListener('click', event => {
+            event.stopPropagation();
+            const index = Number.parseInt(button.getAttribute('data-index'), 10);
+            const ls = leftSidebarTranslations[state.lang] || leftSidebarTranslations.en;
+            if (Number.isNaN(index) || !state.savedProfiles?.[index] || !confirm(`${ls.deleteProfile}?`)) return;
+            state.savedProfiles.splice(index, 1);
+            localStorage.setItem('horoscope_saved_profiles', JSON.stringify(state.savedProfiles));
+            render();
+        });
+    });
+}
+
 // Bind event listeners to UI components
 function bindEvents() {
+    bindSavedProfileEvents();
     document.querySelectorAll('[data-chart-text-adjust]').forEach(button => {
         button.addEventListener('click', () => {
             const step = Number(button.getAttribute('data-chart-text-adjust')) * 0.1;
@@ -4169,127 +4319,6 @@ function bindEvents() {
                 }
             });
         });
-
-        // Left Sidebar Saved Profiles Management
-        const saveProfileBtn = document.querySelector('#save-current-profile-btn');
-        if (saveProfileBtn) {
-            saveProfileBtn.addEventListener('click', () => {
-                const ls = leftSidebarTranslations[state.lang] || leftSidebarTranslations['en'];
-                let name = '';
-                let gender = 'male';
-                let place = '';
-                let day = '';
-                let month = '';
-                let year = '';
-                let hour = '';
-                let minute = '';
-                let ampm = 'PM';
-                let cityObj = state.selectedCity;
-
-                if (state.view === 'results' && state.horoscope && state.horoscope.birthDetails) {
-                    const bd = state.horoscope.birthDetails;
-                    name = bd.name || '';
-                    gender = bd.gender || 'male';
-                    place = bd.city || '';
-                    const [y, m, d] = (bd.dateStr || '').split('-');
-                    year = y; month = m; day = d;
-                    const [h, min] = (bd.timeStr || '').split(':');
-                    hour = h; minute = min; ampm = bd.ampm || 'PM';
-                } else {
-                    name = document.querySelector('#input-name')?.value || '';
-                    gender = document.querySelector('#input-gender')?.value || 'male';
-                    place = document.querySelector('#input-place')?.value || '';
-                    day = document.querySelector('#select-day')?.value || '';
-                    month = document.querySelector('#select-month')?.value || '';
-                    year = document.querySelector('#select-year')?.value || '';
-                    hour = document.querySelector('#select-hour')?.value || '';
-                    minute = document.querySelector('#select-minute')?.value || '';
-                    ampm = document.querySelector('#select-ampm')?.value || 'PM';
-                }
-
-                if (!name || !day || !month || !year) {
-                    const enterValidMsg = state.lang === 'ta' 
-                        ? 'தயவுசெய்து பெயர் மற்றும் பிறந்த தேதியை உள்ளிடவும்.' 
-                        : 'Please enter at least Name and Birth Date to save profile.';
-                    alert(enterValidMsg);
-                    return;
-                }
-
-                const defaultName = `${name} (${day}-${month}-${year})`;
-                const profileLabel = prompt(ls.enterProfileName, defaultName);
-                if (!profileLabel) return;
-
-                const newProfile = {
-                    id: 'prof_' + Date.now(),
-                    name: profileLabel,
-                    personName: name,
-                    gender,
-                    place,
-                    day,
-                    month,
-                    year,
-                    dateStr: `${year}-${month}-${day}`,
-                    hour,
-                    minute,
-                    ampm,
-                    city: cityObj
-                };
-
-                state.savedProfiles = [newProfile, ...(state.savedProfiles || [])];
-                localStorage.setItem('horoscope_saved_profiles', JSON.stringify(state.savedProfiles));
-                render();
-            });
-        }
-
-        // Load Saved Profile Buttons
-        const loadProfileBtns = document.querySelectorAll('.load-profile-btn');
-        loadProfileBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const idx = parseInt(btn.getAttribute('data-index'), 10);
-                if (!isNaN(idx) && state.savedProfiles && state.savedProfiles[idx]) {
-                    const prof = state.savedProfiles[idx];
-                    if (state.view !== 'form') {
-                        state.view = 'form';
-                    }
-                    if (prof.city) {
-                        state.selectedCity = prof.city;
-                    }
-                    render();
-                    
-                    // Fill form inputs
-                    setTimeout(() => {
-                        if (document.querySelector('#input-name')) document.querySelector('#input-name').value = prof.personName || prof.name;
-                        if (document.querySelector('#input-gender')) document.querySelector('#input-gender').value = prof.gender || 'male';
-                        if (document.querySelector('#input-place')) document.querySelector('#input-place').value = prof.place || '';
-                        if (document.querySelector('#select-day')) document.querySelector('#select-day').value = prof.day || '';
-                        if (document.querySelector('#select-month')) document.querySelector('#select-month').value = prof.month || '';
-                        if (document.querySelector('#select-year')) document.querySelector('#select-year').value = prof.year || '';
-                        if (document.querySelector('#select-hour')) document.querySelector('#select-hour').value = prof.hour || '';
-                        if (document.querySelector('#select-minute')) document.querySelector('#select-minute').value = prof.minute || '';
-                        if (document.querySelector('#select-ampm')) document.querySelector('#select-ampm').value = prof.ampm || 'PM';
-                        scrollToElement('#form-card');
-                    }, 50);
-                }
-            });
-        });
-
-        // Delete Saved Profile Buttons
-        const deleteProfileBtns = document.querySelectorAll('.delete-profile-btn');
-        deleteProfileBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const idx = parseInt(btn.getAttribute('data-index'), 10);
-                const ls = leftSidebarTranslations[state.lang] || leftSidebarTranslations['en'];
-                if (!isNaN(idx) && state.savedProfiles && state.savedProfiles[idx]) {
-                    if (confirm(ls.deleteProfile + '?')) {
-                        state.savedProfiles.splice(idx, 1);
-                        localStorage.setItem('horoscope_saved_profiles', JSON.stringify(state.savedProfiles));
-                        render();
-                    }
-                }
-            });
-        });
-
 
         // Monthly Calendar Navigation Listeners
         const calPrevBtn = document.querySelector('#cal-prev-month-btn');
